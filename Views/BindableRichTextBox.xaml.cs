@@ -57,6 +57,11 @@ namespace Patience.Views
             }
         }
 
+        public void ScrollToVerticalOffset(double offset)
+        {
+            textBox.ScrollToVerticalOffset(offset);
+        }
+
         private void OnScrollChanged(object sender, ScrollChangedEventArgs e)
         {
             lineBox.ScrollToVerticalOffset(e.VerticalOffset);

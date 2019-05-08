@@ -26,5 +26,10 @@ namespace Patience
             InitializeComponent();
             DataContext = new MainWindowViewModel();
         }
+
+        private void File2_OnScrollChanged(object sender, ScrollChangedEventArgs e)
+        {
+            file1.ScrollToVerticalOffset(e.VerticalOffset);
+        }
     }
 }

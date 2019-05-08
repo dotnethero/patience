@@ -8,8 +8,8 @@
         xmlns:viewModels="clr-namespace:Patience.ViewModels"
         mc:Ignorable="d"
         Title="Patience"
-        Height="450" 
-        Width="800" d:DataContext="{d:DesignInstance {x:Type viewModels:MainWindowViewModel}}">
+        Height="650" 
+        Width="1100" d:DataContext="{d:DesignInstance {x:Type viewModels:MainWindowViewModel}}">
     <Window.Resources>
         <Style TargetType="GridSplitter">
             <Setter Property="Background" Value="GhostWhite" />
@@ -33,9 +33,9 @@
                 <ColumnDefinition Width="5"></ColumnDefinition>
                 <ColumnDefinition Width="*"></ColumnDefinition>
             </Grid.ColumnDefinitions>
-            <views:BindableRichTextBox Grid.Column="0" DataContext="{Binding File1}" ScrollBarVisibility="Hidden" />
+            <views:BindableRichTextBox x:Name="file1" Grid.Column="0" DataContext="{Binding File1}" ScrollBarVisibility="Hidden" />
             <GridSplitter Grid.Column="1"></GridSplitter>
-            <views:BindableRichTextBox Grid.Column="2" DataContext="{Binding File2}" ScrollBarVisibility="Visible" />
+            <views:BindableRichTextBox x:Name="file2" Grid.Column="2" DataContext="{Binding File2}" ScrollBarVisibility="Visible" ScrollChanged="File2_OnScrollChanged" />
         </Grid>
     </DockPanel>
 </Window>
