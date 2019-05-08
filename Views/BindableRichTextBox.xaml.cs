@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 using System.Windows.Data;
 using System.Windows.Documents;
 using System.Windows.Input;
@@ -20,6 +21,8 @@ namespace Patience.Views
     /// </summary>
     public partial class BindableRichTextBox : UserControl
     {
+        public event ScrollChangedEventHandler ScrollChanged;
+
         public BindableRichTextBox()
         {
             InitializeComponent();
@@ -29,21 +32,26 @@ namespace Patience.Views
         {
             if (e.NewValue is string text)
             {
-                var doc = new FlowDocument();
-                doc.PageWidth = 1000; // fast resize tweak
+                var doc = new FlowDocument { PageWidth = 1000 }; // fast resize tweak
                 var lines = text.Split(new[] { Environment.NewLine }, StringSplitOptions.None);
+                var lineNumbers = new StringBuilder();
+                var currentLineNumber = 1;
                 foreach (var line in lines)
                 {
                     var para = new Paragraph();
                     para.Inlines.Add(line);
                     doc.Blocks.Add(para);
+                    lineNumbers.AppendLine($"{currentLineNumber++}");
                 }
                 textBox.Document = doc;
+                lineBox.Text = lineNumbers.ToString();
             }
         }
 
-        private void OnSizeChanged(object sender, SizeChangedEventArgs e)
+        private void OnScrollChanged(object sender, ScrollChangedEventArgs e)
         {
+            lineBox.ScrollToVerticalOffset(e.VerticalOffset);
+            ScrollChanged?.Invoke(this, e);
         }
     }
 }

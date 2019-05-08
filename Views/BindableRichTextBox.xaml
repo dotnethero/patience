@@ -6,8 +6,7 @@
              xmlns:local="clr-namespace:Patience.Views"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800" 
-             DataContextChanged="OnDataContextChanged"
-             SizeChanged="OnSizeChanged">
+             DataContextChanged="OnDataContextChanged">
     <UserControl.Resources>
         <Style TargetType="RichTextBox">
             <Setter Property="FontFamily" Value="Consolas" />
@@ -19,6 +18,25 @@
         <Style TargetType="Paragraph">
             <Setter Property="Margin" Value="0" />
         </Style>
+        <Style TargetType="TextBox" x:Key="LineNumbers">
+            <Setter Property="VerticalScrollBarVisibility" Value="Hidden" />
+            <Setter Property="HorizontalScrollBarVisibility" Value="Hidden" />
+            <Setter Property="FontFamily" Value="Consolas" />
+            <Setter Property="FontSize" Value="14" />
+            <Setter Property="TextAlignment" Value="Right" />
+            <Setter Property="Padding" Value="0,0,5,0"></Setter>
+            <Setter Property="IsReadOnly" Value="True" />
+            <Setter Property="Focusable" Value="False" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Background" Value="AliceBlue" />
+        </Style>
     </UserControl.Resources>
-    <RichTextBox Name="textBox" />
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="50" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+        <TextBox Grid.Column="0" Style="{StaticResource LineNumbers}" Name="lineBox" />
+        <RichTextBox Grid.Column="1" Name="textBox" ScrollViewer.ScrollChanged="OnScrollChanged"  />
+    </Grid>
 </UserControl>
