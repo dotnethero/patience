@@ -22,6 +22,15 @@ namespace Patience.Views
     public partial class BindableRichTextBox : UserControl
     {
         public event ScrollChangedEventHandler ScrollChanged;
+        
+        public static readonly DependencyProperty ScrollBarVisibilityProperty = DependencyProperty.Register(
+            "ScrollBarVisibility", typeof(ScrollBarVisibility), typeof(BindableRichTextBox), new PropertyMetadata(ScrollBarVisibility.Visible));
+
+        public ScrollBarVisibility ScrollBarVisibility
+        {
+            get => (ScrollBarVisibility) GetValue(ScrollBarVisibilityProperty);
+            set => SetValue(ScrollBarVisibilityProperty, value);
+        }
 
         public BindableRichTextBox()
         {
