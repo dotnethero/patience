@@ -4,18 +4,22 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using DiffMatchPatch;
 
 namespace Patience.ViewModels
 {
     internal class MainWindowViewModel
     {
-        public string File1 { get; set; }
-        public string File2 { get; set; }
+        public List<Diff> Diff { get; set; }
 
         public MainWindowViewModel()
         {
-            File1 = File.ReadAllText("Data/413158_source.txt");
-            File2 = File.ReadAllText("Data/413158_recalc.txt");
+            var file1 = File.ReadAllText("Data/413158_source.txt");
+            var file2 = File.ReadAllText("Data/413158_recalc.txt");
+            var dmp = new diff_match_patch();
+            var diff = dmp.diff_main(file1, file2, true);
+            dmp.diff_cleanupSemantic(diff);
+            Diff = diff;
         }
     }
 }

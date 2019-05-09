@@ -33,9 +33,20 @@
                 <ColumnDefinition Width="5"></ColumnDefinition>
                 <ColumnDefinition Width="*"></ColumnDefinition>
             </Grid.ColumnDefinitions>
-            <views:BindableRichTextBox x:Name="file1" Grid.Column="0" DataContext="{Binding File1}" ScrollBarVisibility="Hidden" />
+            <views:BindableRichTextBox 
+                x:Name="file1" 
+                Grid.Column="0" 
+                DataContext="{Binding Diff}" 
+                ShowMode="File1"
+                ScrollBarVisibility="Hidden" />
             <GridSplitter Grid.Column="1"></GridSplitter>
-            <views:BindableRichTextBox x:Name="file2" Grid.Column="2" DataContext="{Binding File2}" ScrollBarVisibility="Visible" ScrollChanged="File2_OnScrollChanged" />
+            <views:BindableRichTextBox 
+                x:Name="file2" 
+                Grid.Column="2" 
+                DataContext="{Binding Diff}" 
+                ShowMode="File2"
+                ScrollBarVisibility="Visible"
+                ScrollChanged="File2_OnScrollChanged" />
         </Grid>
     </DockPanel>
 </Window>
