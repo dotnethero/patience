@@ -1,19 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.InteropServices;
 using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Controls.Primitives;
-using System.Windows.Data;
 using System.Windows.Documents;
-using System.Windows.Input;
 using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 using DiffMatchPatch;
 using Patience.Core;
 
@@ -24,6 +15,8 @@ namespace Patience.Views
     /// </summary>
     public partial class BindableRichTextBox : UserControl
     {
+        private readonly UserControlBrushes _brushes;
+
         public event ScrollChangedEventHandler ScrollChanged;
 
         #region Dependency properties
@@ -40,6 +33,7 @@ namespace Patience.Views
         public static readonly DependencyProperty ShowModeProperty = DependencyProperty.Register(
             "ShowMode", typeof(DiffShowMode), typeof(BindableRichTextBox), new PropertyMetadata(default(DiffShowMode)));
 
+
         public DiffShowMode ShowMode
         {
             get => (DiffShowMode) GetValue(ShowModeProperty);
@@ -47,137 +41,117 @@ namespace Patience.Views
         }
 
         #endregion
+        
+        private class UserControlBrushes
+        {
+            public Brush ModifiedDeleted { get; set; }
+            public Brush ModifiedInserted { get; set; }
+            public Brush Deleted { get; set; }
+            public Brush Inserted { get; set; }
+            public Brush AbsentArea { get; set; }
+            public Brush AbsentAreaForeground { get; set; }
+        }
 
         public BindableRichTextBox()
         {
             InitializeComponent();
+
+            _brushes = new UserControlBrushes
+            {
+                ModifiedDeleted = new SolidColorBrush(Color.FromRgb(255, 204, 204)), 
+                ModifiedInserted = new SolidColorBrush(Color.FromRgb(235, 241, 221)), 
+                Deleted = new SolidColorBrush(Color.FromRgb(255, 153, 153)),
+                Inserted = new SolidColorBrush(Color.FromRgb(215, 227, 188)),
+                AbsentArea = (Brush) TryFindResource("AbsentArea"),
+                AbsentAreaForeground = Brushes.DarkGray
+            };
         }
 
         private void OnDataContextChanged(object sender, DependencyPropertyChangedEventArgs e)
         {
-            if (e.NewValue is string text)
-            {
-                var doc = new FlowDocument { PageWidth = 1000 }; // fast resize tweak
-                var lines = text.Split(new[] { Environment.NewLine }, StringSplitOptions.None);
-                var lineNumbers = new StringBuilder();
-                var currentLineNumber = 1;
-                foreach (var line in lines)
-                {
-                    var para = new Paragraph();
-                    para.Inlines.Add(line);
-                    doc.Blocks.Add(para);
-                    lineNumbers.AppendLine($"{currentLineNumber++}");
-                }
-                textBox.Document = doc;
-                lineBox.Text = lineNumbers.ToString();
-            }
-
             if (e.NewValue is List<Diff> diffs)
             {
-                var doc = new FlowDocument { PageWidth = 1000 }; // fast resize tweak
-                var lightRed = new SolidColorBrush(Color.FromRgb(255, 204, 204));
-                var hardRed = new SolidColorBrush(Color.FromRgb(255, 153, 153));
-                var hardGreen = new SolidColorBrush(Color.FromRgb(215, 227, 188));
-                var lightGreen = new SolidColorBrush(Color.FromRgb(235, 241, 221));
-                var gray = Brushes.LightGray;
-                var white = Brushes.DarkGray;
-                var removeBrush = (Brush) TryFindResource("RemoveBrush");
-                var lines = ToLines(diffs);
+                var document = new FlowDocument { PageWidth = 1000 }; // fast resize tweak
+                var lineDiffs = diffs.ToLineDiffs();
                 var lineNumbers = new StringBuilder();
                 var currentLineNumber = 1;
-                foreach (var line in lines)
+                foreach (var line in lineDiffs)
                 {
-                    var para = new Paragraph();
-                    if (line.Operation == Operation.INSERT && ShowMode == DiffShowMode.File1)
-                    {
-                        para.Foreground = white;
-                        para.Background = removeBrush;
-                    }
-                    if (line.Operation == Operation.INSERT && ShowMode == DiffShowMode.File2)
-                    {
-                        para.Background = hardGreen;
-                    }
-                    if (line.Operation == Operation.MODIFIED && ShowMode == DiffShowMode.File2)
-                    {
-                        para.Background = lightGreen;
-                    }
-                    if (line.Operation == Operation.DELETE && ShowMode == DiffShowMode.File1)
-                    {
-                        para.Background = hardRed;
-                    }
-                    if (line.Operation == Operation.MODIFIED && ShowMode == DiffShowMode.File1)
-                    {
-                        para.Background = lightRed;
-                    }
-                    if (line.Operation == Operation.DELETE && ShowMode == DiffShowMode.File2)
-                    {
-                        para.Foreground = white;
-                        para.Background = removeBrush;
-                    }
-                    foreach (var diff in line.Diffs)
-                    {
-                        var inline = new Run();
-                        if (line.Operation == Operation.MODIFIED)
-                        {
-                            if (diff.operation == Operation.INSERT && ShowMode == DiffShowMode.File1)
-                            {
-                            }
-                            if (diff.operation == Operation.INSERT && ShowMode == DiffShowMode.File2)
-                            {
-                                inline.Text = diff.text;
-                                inline.Background = hardGreen;
-                            }
-                            if (diff.operation == Operation.DELETE && ShowMode == DiffShowMode.File1)
-                            {
-                                inline.Text = diff.text;
-                                inline.Background = hardRed;
-                            }
-                            if (diff.operation == Operation.DELETE && ShowMode == DiffShowMode.File2)
-                            {
-                            }
-                            if (diff.operation == Operation.EQUAL)
-                            {
-                                inline.Text = diff.text;
-                            }
-                        }
-                        else
-                        {
-                            inline.Text = diff.text;
-                        }
-                        
-                        para.Inlines.Add(inline);
-                    }
-                    doc.Blocks.Add(para);
+                    var paragraph = CreateParagraph(line);
+                    document.Blocks.Add(paragraph);
                     lineNumbers.AppendLine($"{currentLineNumber++}");
                 }
-                textBox.Document = doc;
+                textBox.Document = document;
                 lineBox.Text = lineNumbers.ToString();
             }
         }
 
-
-        private List<LineDiff> ToLines(List<Diff> diffs)
+        private Paragraph CreateParagraph(LineDiff line)
         {
-            List<LineDiff> all = new List<LineDiff>();
-            LineDiff last = null;
-            foreach (var diff in diffs)
+            var paragraph = new Paragraph();
+
+            if (ShowMode == DiffShowMode.File1)
             {
-                var lines = diff.text.GetLines();
-                var skip = 0;
-                if (last != null)
+                if (line.Operation == Operation.INSERT)
                 {
-                    var first = lines[0];
-                    last.AddDiff(new Diff(diff.operation, first));
-                    skip = 1;
+                    paragraph.Foreground = _brushes.AbsentAreaForeground;
+                    paragraph.Background = _brushes.AbsentArea;
                 }
-                var lineDiffs = lines.Skip(skip).Select(line => new LineDiff(diff.operation, line)).ToList();
-                if (lineDiffs.Count > 0)
+                if (line.Operation == Operation.MODIFIED)
                 {
-                    all.AddRange(lineDiffs);
-                    last = lineDiffs[lineDiffs.Count - 1];
+                    paragraph.Background = _brushes.ModifiedDeleted;
+                }
+                if (line.Operation == Operation.DELETE)
+                {
+                    paragraph.Background = _brushes.Deleted;
                 }
             }
-            return all;
+
+            if (ShowMode == DiffShowMode.File2)
+            {
+                if (line.Operation == Operation.INSERT)
+                {
+                    paragraph.Background = _brushes.Inserted;
+                }
+                if (line.Operation == Operation.MODIFIED)
+                {
+                    paragraph.Background = _brushes.ModifiedInserted;
+                }
+                if (line.Operation == Operation.DELETE)
+                {
+                    paragraph.Foreground = _brushes.AbsentAreaForeground;
+                    paragraph.Background = _brushes.AbsentArea;
+                }
+            }
+
+            foreach (var diff in line.Diffs)
+            {
+                var inline = new Run();
+                if (line.Operation != Operation.MODIFIED)
+                {
+                    inline.Text = diff.text;
+                }
+                else
+                {
+                    if (diff.operation == Operation.DELETE && ShowMode == DiffShowMode.File1)
+                    {
+                        inline.Text = diff.text;
+                        inline.Background = _brushes.Deleted;
+                    }
+                    if (diff.operation == Operation.INSERT && ShowMode == DiffShowMode.File2)
+                    {
+                        inline.Text = diff.text;
+                        inline.Background = _brushes.Inserted;
+                    }
+                    if (diff.operation == Operation.EQUAL)
+                    {
+                        inline.Text = diff.text;
+                    }
+                }
+                paragraph.Inlines.Add(inline);
+            }
+
+            return paragraph;
         }
 
         public void ScrollToVerticalOffset(double offset)

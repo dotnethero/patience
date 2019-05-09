@@ -16,9 +16,9 @@ namespace Patience.Core
         public LineDiff(Operation operation, string text) : this()
         {
             Operation = operation;
-            if (text != string.Empty)
+            if (text != string.Empty) // empty text does not change operation
             {
-                AddDiff(new Diff(operation, text));
+                Diffs.Add(new Diff(operation, text));
             }
         }
 
@@ -30,22 +30,5 @@ namespace Patience.Core
             }
             Diffs.Add(diff);
         }
-
-        public bool IsUncompleted()
-        {
-            return !Diffs[Diffs.Count - 1].text.IsCompletedLine();
-        }
-
-        //public LineDiff(Diff diff)
-        //{
-        //    Diffs = new List<Diff> { diff };
-        //    Operation = diff.operation;
-        //}
-
-        //public LineDiff(List<Diff> diffs, Operation operation)
-        //{
-        //    Diffs = diffs;
-        //    Operation = operation;
-        //}
     }
 }
