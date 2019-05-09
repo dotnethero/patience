@@ -595,7 +595,7 @@ namespace DiffMatchPatch {
      *     encoded text2 and the List of unique strings.  The zeroth element
      *     of the List of unique strings is intentionally blank.
      */
-    protected Object[] diff_linesToChars(string text1, string text2) {
+    public Object[] diff_linesToChars(string text1, string text2) {
       List<string> lineArray = new List<string>();
       Dictionary<string, int> lineHash = new Dictionary<string, int>();
       // e.g. linearray[4] == "Hello\n"
@@ -659,7 +659,7 @@ namespace DiffMatchPatch {
      * @param diffs List of Diff objects.
      * @param lineArray List of unique strings.
      */
-    protected void diff_charsToLines(ICollection<Diff> diffs,
+    public void diff_charsToLines(ICollection<Diff> diffs,
                     IList<string> lineArray) {
       StringBuilder text;
       foreach (Diff diff in diffs) {

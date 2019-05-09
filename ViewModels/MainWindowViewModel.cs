@@ -16,10 +16,15 @@ namespace Patience.ViewModels
         {
             var file1 = File.ReadAllText("Data/413158_source.txt");
             var file2 = File.ReadAllText("Data/413158_recalc.txt");
+
             var dmp = new diff_match_patch();
-            var diff = dmp.diff_main(file1, file2, true);
-            dmp.diff_cleanupSemantic(diff);
-            Diff = diff;
+            var a = dmp.diff_linesToChars(file1, file2);
+            var lineText1 = (string)a[0];
+            var lineText2 = (string)a[1];
+            var lineArray = (List<string>)a[2];
+            var diffs = dmp.diff_main(lineText1, lineText2, false);
+            dmp.diff_charsToLines(diffs, lineArray);
+            Diff = diffs;
         }
     }
 }
