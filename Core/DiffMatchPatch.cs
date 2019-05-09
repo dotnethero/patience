@@ -51,7 +51,7 @@ namespace DiffMatchPatch {
    * which means: delete "Hello", add "Goodbye" and keep " world."
    */
   public enum Operation {
-    DELETE, INSERT, EQUAL, MODIFIED
+    DELETE, INSERT, EQUAL
   }
 
 

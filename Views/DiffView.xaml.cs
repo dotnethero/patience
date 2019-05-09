@@ -92,16 +92,16 @@ namespace Patience.Views
 
             if (ShowMode == DiffShowMode.File1)
             {
-                if (line.Operation == Operation.INSERT)
+                if (line.Operation == LineOperation.Inserted)
                 {
                     paragraph.Foreground = _brushes.AbsentAreaForeground;
                     paragraph.Background = _brushes.AbsentArea;
                 }
-                if (line.Operation == Operation.MODIFIED)
+                if (line.Operation == LineOperation.Modified)
                 {
                     paragraph.Background = _brushes.ModifiedDeleted;
                 }
-                if (line.Operation == Operation.DELETE)
+                if (line.Operation == LineOperation.Deleted)
                 {
                     paragraph.Background = _brushes.Deleted;
                 }
@@ -109,15 +109,15 @@ namespace Patience.Views
 
             if (ShowMode == DiffShowMode.File2)
             {
-                if (line.Operation == Operation.INSERT)
+                if (line.Operation == LineOperation.Inserted)
                 {
                     paragraph.Background = _brushes.Inserted;
                 }
-                if (line.Operation == Operation.MODIFIED)
+                if (line.Operation == LineOperation.Modified)
                 {
                     paragraph.Background = _brushes.ModifiedInserted;
                 }
-                if (line.Operation == Operation.DELETE)
+                if (line.Operation == LineOperation.Deleted)
                 {
                     paragraph.Foreground = _brushes.AbsentAreaForeground;
                     paragraph.Background = _brushes.AbsentArea;
@@ -127,7 +127,7 @@ namespace Patience.Views
             foreach (var diff in line.Diffs)
             {
                 var inline = new Run();
-                if (line.Operation != Operation.MODIFIED)
+                if (line.Operation != LineOperation.Modified)
                 {
                     inline.Text = diff.text;
                 }
