@@ -33,14 +33,15 @@
                 <ColumnDefinition Width="5"></ColumnDefinition>
                 <ColumnDefinition Width="*"></ColumnDefinition>
             </Grid.ColumnDefinitions>
-            <views:BindableRichTextBox 
+            <views:DiffView 
                 x:Name="file1" 
                 Grid.Column="0" 
                 DataContext="{Binding Diff}" 
                 ShowMode="File1"
-                ScrollBarVisibility="Hidden" />
+                ScrollBarVisibility="Hidden"
+                ScrollChanged="File1_OnScrollChanged"/>
             <GridSplitter Grid.Column="1"></GridSplitter>
-            <views:BindableRichTextBox 
+            <views:DiffView 
                 x:Name="file2" 
                 Grid.Column="2" 
                 DataContext="{Binding Diff}" 

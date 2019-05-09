@@ -13,7 +13,7 @@ namespace Patience.Views
     /// <summary>
     /// Interaction logic for BindableRichTextBox.xaml
     /// </summary>
-    public partial class BindableRichTextBox : UserControl
+    public partial class DiffView : UserControl
     {
         private readonly UserControlBrushes _brushes;
 
@@ -22,7 +22,7 @@ namespace Patience.Views
         #region Dependency properties
 
         public static readonly DependencyProperty ScrollBarVisibilityProperty = DependencyProperty.Register(
-            "ScrollBarVisibility", typeof(ScrollBarVisibility), typeof(BindableRichTextBox), new PropertyMetadata(ScrollBarVisibility.Visible));
+            "ScrollBarVisibility", typeof(ScrollBarVisibility), typeof(DiffView), new PropertyMetadata(ScrollBarVisibility.Visible));
 
         public ScrollBarVisibility ScrollBarVisibility
         {
@@ -31,7 +31,7 @@ namespace Patience.Views
         }
 
         public static readonly DependencyProperty ShowModeProperty = DependencyProperty.Register(
-            "ShowMode", typeof(DiffShowMode), typeof(BindableRichTextBox), new PropertyMetadata(default(DiffShowMode)));
+            "ShowMode", typeof(DiffShowMode), typeof(DiffView), new PropertyMetadata(default(DiffShowMode)));
 
 
         public DiffShowMode ShowMode
@@ -52,7 +52,7 @@ namespace Patience.Views
             public Brush AbsentAreaForeground { get; set; }
         }
 
-        public BindableRichTextBox()
+        public DiffView()
         {
             InitializeComponent();
 
