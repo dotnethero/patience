@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
@@ -79,32 +80,104 @@ namespace Patience.Views
                 var hardGreen = new SolidColorBrush(Color.FromRgb(215, 227, 188));
                 var lightGreen = new SolidColorBrush(Color.FromRgb(235, 241, 221));
                 var gray = Brushes.LightGray;
-                var para = new Paragraph();
-                foreach (var diff in diffs)
+                var white = Brushes.DarkGray;
+                var removeBrush = (Brush) TryFindResource("RemoveBrush");
+                var lines = ToLines(diffs);
+                var lineNumbers = new StringBuilder();
+                var currentLineNumber = 1;
+                foreach (var line in lines)
                 {
-                    var inline = new Run();
-                    if (diff.operation == Operation.INSERT && ShowMode == DiffShowMode.File1)
+                    var para = new Paragraph();
+                    if (line.Operation == Operation.INSERT && ShowMode == DiffShowMode.File1)
                     {
-                        inline.Foreground = gray;
+                        para.Foreground = white;
+                        para.Background = removeBrush;
                     }
-                    if (diff.operation == Operation.INSERT && ShowMode == DiffShowMode.File2)
+                    if (line.Operation == Operation.INSERT && ShowMode == DiffShowMode.File2)
                     {
-                        inline.Background = hardGreen;
+                        para.Background = hardGreen;
                     }
-                    if (diff.operation == Operation.DELETE && ShowMode == DiffShowMode.File1)
+                    if (line.Operation == Operation.MODIFIED && ShowMode == DiffShowMode.File2)
                     {
-                        inline.Background = hardRed;
+                        para.Background = lightGreen;
                     }
-                    if (diff.operation == Operation.DELETE && ShowMode == DiffShowMode.File2)
+                    if (line.Operation == Operation.DELETE && ShowMode == DiffShowMode.File1)
                     {
-                        inline.Foreground = gray;
+                        para.Background = hardRed;
                     }
-                    inline.Text = diff.text;
-                    para.Inlines.Add(inline);
+                    if (line.Operation == Operation.MODIFIED && ShowMode == DiffShowMode.File1)
+                    {
+                        para.Background = lightRed;
+                    }
+                    if (line.Operation == Operation.DELETE && ShowMode == DiffShowMode.File2)
+                    {
+                        para.Foreground = white;
+                        para.Background = removeBrush;
+                    }
+                    foreach (var diff in line.Diffs)
+                    {
+                        var inline = new Run();
+                        if (line.Operation == Operation.MODIFIED)
+                        {
+                            if (diff.operation == Operation.INSERT && ShowMode == DiffShowMode.File1)
+                            {
+                            }
+                            if (diff.operation == Operation.INSERT && ShowMode == DiffShowMode.File2)
+                            {
+                                inline.Text = diff.text;
+                                inline.Background = hardGreen;
+                            }
+                            if (diff.operation == Operation.DELETE && ShowMode == DiffShowMode.File1)
+                            {
+                                inline.Text = diff.text;
+                                inline.Background = hardRed;
+                            }
+                            if (diff.operation == Operation.DELETE && ShowMode == DiffShowMode.File2)
+                            {
+                            }
+                            if (diff.operation == Operation.EQUAL)
+                            {
+                                inline.Text = diff.text;
+                            }
+                        }
+                        else
+                        {
+                            inline.Text = diff.text;
+                        }
+                        
+                        para.Inlines.Add(inline);
+                    }
+                    doc.Blocks.Add(para);
+                    lineNumbers.AppendLine($"{currentLineNumber++}");
                 }
-                doc.Blocks.Add(para);
                 textBox.Document = doc;
+                lineBox.Text = lineNumbers.ToString();
             }
+        }
+
+
+        private List<LineDiff> ToLines(List<Diff> diffs)
+        {
+            List<LineDiff> all = new List<LineDiff>();
+            LineDiff last = null;
+            foreach (var diff in diffs)
+            {
+                var lines = diff.text.GetLines();
+                var skip = 0;
+                if (last != null)
+                {
+                    var first = lines[0];
+                    last.AddDiff(new Diff(diff.operation, first));
+                    skip = 1;
+                }
+                var lineDiffs = lines.Skip(skip).Select(line => new LineDiff(diff.operation, line)).ToList();
+                if (lineDiffs.Count > 0)
+                {
+                    all.AddRange(lineDiffs);
+                    last = lineDiffs[lineDiffs.Count - 1];
+                }
+            }
+            return all;
         }
 
         public void ScrollToVerticalOffset(double offset)
