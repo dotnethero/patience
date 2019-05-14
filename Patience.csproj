@@ -59,6 +59,7 @@
     <Compile Include="Core\DiffMatchPatch.cs" />
     <Compile Include="Core\DiffShowMode.cs" />
     <Compile Include="Core\LineDiff.cs" />
+    <Compile Include="Core\Patience.cs" />
     <Compile Include="Core\Utils.cs" />
     <Compile Include="ViewModels\MainWindowViewModel.cs" />
     <Compile Include="Views\DiffView.xaml.cs">
