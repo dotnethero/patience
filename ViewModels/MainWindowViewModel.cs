@@ -1,10 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using DiffMatchPatch;
+using Patience.Core;
 
 namespace Patience.ViewModels
 {
@@ -24,7 +21,31 @@ namespace Patience.ViewModels
             var lineArray = (List<string>)a[2];
             var diffs = dmp.diff_main(lineText1, lineText2, false);
             dmp.diff_charsToLines(diffs, lineArray);
-            Diff = diffs;
+
+            // greedy sequence finder
+
+            var result = new List<Diff>();
+            for (var i = 0; i < diffs.Count; i++)
+            {
+                if (diffs[i].operation == Operation.DELETE &&
+                    diffs[i + 1].operation == Operation.INSERT &&
+                    diffs[i].text.GetLinesCount() == diffs[i + 1].text.GetLinesCount())
+                {
+                    var partialDiffs = dmp.diff_main(diffs[i].text, diffs[i + 1].text);
+                    foreach (var partialDiff in partialDiffs)
+                    {
+                        result.Add(partialDiff);
+                    }
+                    i++;
+                }
+                else
+                {
+                    result.Add(diffs[i]);
+                }
+            }
+
+
+            Diff = result;
         }
     }
 }

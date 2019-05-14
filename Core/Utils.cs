@@ -12,6 +12,11 @@ namespace Patience.Core
             return text.Split(new[] { Environment.NewLine }, StringSplitOptions.None);
         }
 
+        internal static int GetLinesCount(this string text)
+        {
+            return text.GetLines().Length; // TODO: optimize
+        }
+
         internal static List<LineDiff> ToLineDiffs(this IEnumerable<Diff> diffs)
         {
             List<LineDiff> all = new List<LineDiff>();
