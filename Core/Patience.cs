@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using DiffMatchPatch;
+using Patience.Models;
 
 // https://blog.jcoglan.com/2017/09/28/implementing-patience-diff/
 // ReSharper disable InconsistentNaming
@@ -109,16 +109,76 @@ namespace Patience.Core
             var lineArray = hash.OrderBy(x => x.Value).Select(x => x.Key).ToList();
             lineArray.Insert(0, null);
 
-            var dmp = new diff_match_patch();
-            var diffs = dmp.diff_main(lineText1, lineText2, false);
+            var dmp = new Myers();
+            var diffs = dmp.diff_main(lineText1, lineText2);
             var result = new List<LineDiff>();
             foreach (var diff in diffs)
             {
-                foreach (var ch in diff.text)
+                foreach (var ch in diff.Text)
                 {
-                    result.Add(new LineDiff(diff.operation, lineArray[ch]));
+                    result.Add(new LineDiff(diff.Operation, lineArray[ch]));
                 }
             }
+
+            if (true) // TODO: here should be option for interline diff
+            {
+                // TODO: can i move it before main diff?
+                var commonPrefix = new List<LineDiff>();
+                var commonSuffix = new List<LineDiff>();
+                var commonPrefixComplete = false;
+                var commonSuffixComplete = false;
+                for (var index = 0; index < result.Count; index++)
+                {
+                    var diffStart = result[index];
+                    if (diffStart.Operation == Operation.Equal && !commonPrefixComplete)
+                    {
+                        commonPrefix.Add(diffStart);
+                    }
+                    else
+                    {
+                        commonPrefixComplete = true;
+                    }
+
+                    var diffEnd = result[result.Count - index - 1];
+                    if (diffEnd.Operation == Operation.Equal && !commonSuffixComplete)
+                    {
+                        commonSuffix.Add(diffEnd);
+                    }
+                    else
+                    {
+                        commonSuffixComplete = true;
+                    }
+                }
+
+                var deletes = result.Where(x => x.Operation == Operation.Delete).ToList();
+                var inserts = result.Where(x => x.Operation == Operation.Insert).ToList();
+                if (inserts.Count == deletes.Count && inserts.Count + deletes.Count == result.Count - commonPrefix.Count - commonSuffix.Count)
+                {
+                    var interlineResults = new List<LineDiff>();
+                    foreach (var diff in commonPrefix)
+                    {
+                        interlineResults.Add(diff);
+                    }
+                    for (var i = 0; i < deletes.Count; i++)
+                    {
+                        var del = deletes[i];
+                        var ins = inserts[i];
+                        var interlineDiffs = dmp.diff_main(del.Diffs[0].Text, ins.Diffs[0].Text);
+                        var diff = new LineDiff(Operation.Modify);
+                        foreach (var interlineDiff in interlineDiffs)
+                        {
+                            diff.Add(interlineDiff);
+                        }
+                        interlineResults.Add(diff);
+                    }
+                    foreach (var diff in commonSuffix)
+                    {
+                        interlineResults.Add(diff);
+                    }
+                    return interlineResults;
+                }
+            }
+
             return result;
         }
 
@@ -146,7 +206,7 @@ namespace Patience.Core
                 }
 
                 var change = _a[a_line];
-                lines.Add(new LineDiff(Operation.EQUAL, change));
+                lines.Add(new LineDiff(Operation.Equal, change));
 
                 (a_line, b_line) = (match.a_line + 1, match.b_line + 1);
                 match = match.next;

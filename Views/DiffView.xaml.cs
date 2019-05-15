@@ -1,12 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Text;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Documents;
 using System.Windows.Media;
-using DiffMatchPatch;
 using Patience.Core;
+using Patience.Models;
+using Patience.ViewModels;
 
 namespace Patience.Views
 {
@@ -91,16 +91,16 @@ namespace Patience.Views
 
             if (ShowMode == DiffShowMode.File1)
             {
-                if (line.Operation == LineOperation.Inserted)
+                if (line.Operation == Operation.Insert)
                 {
                     paragraph.Foreground = _brushes.AbsentAreaForeground;
                     paragraph.Background = _brushes.AbsentArea;
                 }
-                if (line.Operation == LineOperation.Modified)
+                if (line.Operation == Operation.Modify)
                 {
                     paragraph.Background = _brushes.ModifiedDeleted;
                 }
-                if (line.Operation == LineOperation.Deleted)
+                if (line.Operation == Operation.Delete)
                 {
                     paragraph.Background = _brushes.Deleted;
                 }
@@ -108,15 +108,15 @@ namespace Patience.Views
 
             if (ShowMode == DiffShowMode.File2)
             {
-                if (line.Operation == LineOperation.Inserted)
+                if (line.Operation == Operation.Insert)
                 {
                     paragraph.Background = _brushes.Inserted;
                 }
-                if (line.Operation == LineOperation.Modified)
+                if (line.Operation == Operation.Modify)
                 {
                     paragraph.Background = _brushes.ModifiedInserted;
                 }
-                if (line.Operation == LineOperation.Deleted)
+                if (line.Operation == Operation.Delete)
                 {
                     paragraph.Foreground = _brushes.AbsentAreaForeground;
                     paragraph.Background = _brushes.AbsentArea;
@@ -126,25 +126,25 @@ namespace Patience.Views
             foreach (var diff in line.Diffs)
             {
                 var inline = new Run();
-                if (line.Operation != LineOperation.Modified)
+                if (line.Operation != Operation.Modify)
                 {
-                    inline.Text = diff.text;
+                    inline.Text = diff.Text;
                 }
                 else
                 {
-                    if (diff.operation == Operation.DELETE && ShowMode == DiffShowMode.File1)
+                    if (diff.Operation == Operation.Delete && ShowMode == DiffShowMode.File1)
                     {
-                        inline.Text = diff.text;
+                        inline.Text = diff.Text;
                         inline.Background = _brushes.Deleted;
                     }
-                    if (diff.operation == Operation.INSERT && ShowMode == DiffShowMode.File2)
+                    if (diff.Operation == Operation.Insert && ShowMode == DiffShowMode.File2)
                     {
-                        inline.Text = diff.text;
+                        inline.Text = diff.Text;
                         inline.Background = _brushes.Inserted;
                     }
-                    if (diff.operation == Operation.EQUAL)
+                    if (diff.Operation == Operation.Equal)
                     {
-                        inline.Text = diff.text;
+                        inline.Text = diff.Text;
                     }
                 }
                 paragraph.Inlines.Add(inline);
