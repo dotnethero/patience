@@ -55,7 +55,7 @@ namespace Patience.Core
 
     class Patience
     {
-        private readonly Func<Slice, List<Diff>> _fallback;
+        private readonly Func<Slice, List<LineDiff>> _fallback;
         private readonly List<string> _a;
         private readonly List<string> _b;
         
@@ -66,17 +66,17 @@ namespace Patience.Core
             _b = b.GetLines().ToList();
         }
 
-        public List<Diff> Diff()
+        public List<LineDiff> Diff()
         {
             var slice = new Slice(0, _a.Count, 0, _b.Count);
             return Diff(slice);
         }
 
-        private List<Diff> Myers(Slice slice)
+        private List<LineDiff> Myers(Slice slice)
         {
             if (slice.a_high == slice.a_low && slice.b_high == slice.b_low)
             {
-                return new List<Diff>(0);
+                return new List<LineDiff>(0);
             }
 
             var a_lines = _a.GetRange(slice.a_low, slice.a_high - slice.a_low);
@@ -111,18 +111,18 @@ namespace Patience.Core
 
             var dmp = new diff_match_patch();
             var diffs = dmp.diff_main(lineText1, lineText2, false);
-            var result = new List<Diff>();
+            var result = new List<LineDiff>();
             foreach (var diff in diffs)
             {
                 foreach (var ch in diff.text)
                 {
-                    result.Add(new Diff(diff.operation, lineArray[ch]));
+                    result.Add(new LineDiff(diff.operation, lineArray[ch]));
                 }
             }
             return result;
         }
 
-        private List<Diff> Diff(Slice slice)
+        private List<LineDiff> Diff(Slice slice)
         {
             var match = PatienceSort(UniqueMatchingLines(slice));
             if (match == null)
@@ -130,7 +130,7 @@ namespace Patience.Core
                 return _fallback(slice);
             }
 
-            var lines = new List<Diff>();
+            var lines = new List<LineDiff>();
             var (a_line, b_line) = (slice.a_low, slice.b_low);
             while (true)
             {
@@ -146,7 +146,7 @@ namespace Patience.Core
                 }
 
                 var change = _a[a_line];
-                lines.Add(new Diff(Operation.EQUAL, change));
+                lines.Add(new LineDiff(Operation.EQUAL, change));
 
                 (a_line, b_line) = (match.a_line + 1, match.b_line + 1);
                 match = match.next;

@@ -69,13 +69,12 @@ namespace Patience.Views
 
         private void OnDataContextChanged(object sender, DependencyPropertyChangedEventArgs e)
         {
-            if (e.NewValue is List<Diff> diffs)
+            if (e.NewValue is List<LineDiff> diffs)
             {
                 var document = new FlowDocument { PageWidth = 1000 }; // fast resize tweak
-                var lineDiffs = diffs.ToLineDiffs();
                 var lineNumbers = new StringBuilder();
                 var currentLineNumber = 1;
-                foreach (var line in lineDiffs)
+                foreach (var line in diffs)
                 {
                     var paragraph = CreateParagraph(line);
                     document.Blocks.Add(paragraph);

@@ -7,7 +7,7 @@ namespace Patience.ViewModels
 {
     internal class MainWindowViewModel
     {
-        public List<Diff> Diff { get; set; }
+        public List<LineDiff> Diff { get; set; }
 
         public MainWindowViewModel()
         {
