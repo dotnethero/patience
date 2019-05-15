@@ -28,6 +28,19 @@ namespace Patience.Core
 
         internal static List<LineDiff> ToLineDiffs(this IEnumerable<Diff> diffs)
         {
+            var all = new List<LineDiff>();
+            foreach (var diff in diffs)
+            {
+                var lines = diff.text.GetLines();
+                var lineDiffs = lines.Select(line => new LineDiff(diff.operation, line)).ToList();
+                all.AddRange(lineDiffs);
+            }
+
+            return all;
+        }
+
+        internal static List<LineDiff> ToLineDiffsOld(this IEnumerable<Diff> diffs)
+        {
             List<LineDiff> all = new List<LineDiff>();
             LineDiff last = null;
             foreach (var diff in diffs)

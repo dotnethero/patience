@@ -15,8 +15,7 @@ namespace Patience.ViewModels
             var file2 = File.ReadAllText("Data/413158_recalc.txt");
 
             var diffs = new Core.Patience(file1, file2).Diff();
-            var result = FindEqualSequences(diffs);
-            Diff = result;
+            Diff = diffs;
         }
 
         private static List<Diff> FindEqualSequences(List<Diff> diffs)

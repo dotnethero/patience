@@ -74,19 +74,52 @@ namespace Patience.Core
 
         private List<Diff> Myers(Slice slice)
         {
+            if (slice.a_high == slice.a_low && slice.b_high == slice.b_low)
+            {
+                return new List<Diff>(0);
+            }
+
             var a_lines = _a.GetRange(slice.a_low, slice.a_high - slice.a_low);
             var b_lines = _b.GetRange(slice.b_low, slice.b_high - slice.b_low);
-            var file1 = string.Join(Environment.NewLine, a_lines);
-            var file2 = string.Join(Environment.NewLine, b_lines);
+
+            var hash = new Dictionary<string, char>(a_lines.Count + b_lines.Count);
+            var a_chars = new StringBuilder(a_lines.Count);
+            var b_chars = new StringBuilder(b_lines.Count);
+            foreach (var line in a_lines)
+            {
+                if (!hash.ContainsKey(line))
+                {
+                    var index = (char) (hash.Count + 1); // 1-based index
+                    hash.Add(line, index);
+                }
+                a_chars.Append(hash[line]);
+            }
+            foreach (var line in b_lines)
+            {
+                if (!hash.ContainsKey(line))
+                {
+                    var index = (char) (hash.Count + 1); // 1-based index
+                    hash.Add(line, index);
+                }
+                b_chars.Append(hash[line]);
+            }
+
+            var lineText1 = a_chars.ToString();
+            var lineText2 = b_chars.ToString();
+            var lineArray = hash.OrderBy(x => x.Value).Select(x => x.Key).ToList();
+            lineArray.Insert(0, null);
 
             var dmp = new diff_match_patch();
-            var a = dmp.diff_linesToChars(file1, file2);
-            var lineText1 = (string)a[0];
-            var lineText2 = (string)a[1];
-            var lineArray = (List<string>)a[2];
             var diffs = dmp.diff_main(lineText1, lineText2, false);
-            dmp.diff_charsToLines(diffs, lineArray);
-            return diffs;
+            var result = new List<Diff>();
+            foreach (var diff in diffs)
+            {
+                foreach (var ch in diff.text)
+                {
+                    result.Add(new Diff(diff.operation, lineArray[ch]));
+                }
+            }
+            return result;
         }
 
         private List<Diff> Diff(Slice slice)
@@ -112,7 +145,7 @@ namespace Patience.Core
                     return lines;
                 }
 
-                var change = _a[a_line] + Environment.NewLine;
+                var change = _a[a_line];
                 lines.Add(new Diff(Operation.EQUAL, change));
 
                 (a_line, b_line) = (match.a_line + 1, match.b_line + 1);
