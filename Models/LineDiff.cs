@@ -5,7 +5,7 @@ namespace Patience.Models
 {
     public class LineDiff
     {
-        public Operation Operation { get; set; }
+        public Operation Operation { get; }
         public List<Diff> Diffs { get; }
 
         public LineDiff(Operation operation)

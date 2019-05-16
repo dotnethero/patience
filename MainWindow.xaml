@@ -8,8 +8,8 @@
         xmlns:viewModels="clr-namespace:Patience.ViewModels"
         mc:Ignorable="d"
         Title="Patience"
-        Height="650" 
-        Width="1100" d:DataContext="{d:DesignInstance {x:Type viewModels:MainWindowViewModel}}">
+        Height="850" 
+        Width="1400" d:DataContext="{d:DesignInstance {x:Type viewModels:MainWindowViewModel}}">
     <Window.Resources>
         <Style TargetType="GridSplitter">
             <Setter Property="Background" Value="GhostWhite" />

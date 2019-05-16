@@ -10,8 +10,8 @@ namespace Patience.ViewModels
 
         public MainWindowViewModel()
         {
-            var file1 = File.ReadAllText("Data/413158_source.txt");
-            var file2 = File.ReadAllText("Data/413158_recalc.txt");
+            var file1 = File.ReadAllText("Data/before.txt");
+            var file2 = File.ReadAllText("Data/after.txt");
 
             var diffs = new Core.Patience(file1, file2).Diff();
             Diff = diffs;

@@ -71,7 +71,7 @@ namespace Patience.Views
         {
             if (e.NewValue is List<LineDiff> diffs)
             {
-                var document = new FlowDocument { PageWidth = 1000 }; // fast resize tweak
+                var document = new FlowDocument { PageWidth = 3000 }; // fast resize tweak
                 var lineNumbers = new StringBuilder();
                 var currentLineNumber = 1;
                 foreach (var line in diffs)
@@ -126,7 +126,15 @@ namespace Patience.Views
             foreach (var diff in line.Diffs)
             {
                 var inline = new Run();
-                if (line.Operation != Operation.Modify)
+                if (line.Operation == Operation.Insert && ShowMode == DiffShowMode.File1)
+                {
+                    inline.Text = "";
+                }
+                else if (line.Operation == Operation.Delete && ShowMode == DiffShowMode.File2)
+                {
+                    inline.Text = "";
+                }
+                else if (line.Operation != Operation.Modify)
                 {
                     inline.Text = diff.Text;
                 }
