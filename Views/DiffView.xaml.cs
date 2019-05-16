@@ -78,7 +78,15 @@ namespace Patience.Views
                 {
                     var paragraph = CreateParagraph(line);
                     document.Blocks.Add(paragraph);
-                    lineNumbers.AppendLine($"{currentLineNumber++}");
+                    if (line.Operation == Operation.Delete && ShowMode == DiffShowMode.File2 ||
+                        line.Operation == Operation.Insert && ShowMode == DiffShowMode.File1)
+                    {
+                        lineNumbers.AppendLine();
+                    }
+                    else
+                    {
+                        lineNumbers.AppendLine($"{currentLineNumber++}");
+                    }
                 }
                 textBox.Document = document;
                 lineBox.Text = lineNumbers.ToString();
