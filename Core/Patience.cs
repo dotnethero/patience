@@ -176,6 +176,7 @@ namespace Patience.Core
                         var del = deletes[i];
                         var ins = inserts[i];
                         var interlineDiffs = dmp.Diff(del.Diffs[0].Text, ins.Diffs[0].Text);
+                        dmp.SemanticCleanup(interlineDiffs);
                         var diff = new LineDiff(Operation.Modify);
                         foreach (var interlineDiff in interlineDiffs)
                         {

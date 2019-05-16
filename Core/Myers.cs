@@ -378,6 +378,54 @@ namespace Patience.Core
             return maxIndex;
         }
 
+        public int GetCommonOverlap(string text1, string text2)
+        {
+            // Cache the text lengths to prevent multiple calls.
+            int text1_length = text1.Length;
+            int text2_length = text2.Length;
+            // Eliminate the null case.
+            if (text1_length == 0 || text2_length == 0)
+            {
+                return 0;
+            }
+            // Truncate the longer string.
+            if (text1_length > text2_length)
+            {
+                text1 = text1.Substring(text1_length - text2_length);
+            }
+            else if (text1_length < text2_length)
+            {
+                text2 = text2.Substring(0, text1_length);
+            }
+            int text_length = Math.Min(text1_length, text2_length);
+            // Quick check for the worst case.
+            if (text1 == text2)
+            {
+                return text_length;
+            }
+
+            // Start by looking for a single character match
+            // and increase length until no match is found.
+            // Performance analysis: https://neil.fraser.name/news/2010/11/04/
+            int best = 0;
+            int length = 1;
+            while (true)
+            {
+                string pattern = text1.Substring(text_length - length);
+                int found = text2.IndexOf(pattern, StringComparison.Ordinal);
+                if (found == -1)
+                {
+                    return best;
+                }
+                length += found;
+                if (found == 0 || text1.Substring(text_length - length) == text2.Substring(0, length))
+                {
+                    best = length;
+                    length++;
+                }
+            }
+        }
+
         /**
          * Do the two texts share a Substring which is at least half the length of
          * the longer text?
@@ -625,6 +673,260 @@ namespace Patience.Core
             {
                 Cleanup(diffs);
             }
+        }
+
+        /**
+         * Reduce the number of edits by eliminating semantically trivial
+         * equalities.
+         * @param diffs List of Diff objects.
+         */
+        public void SemanticCleanup(List<Diff> diffs)
+        {
+            bool changes = false;
+            // Stack of indices where equalities are found.
+            Stack<int> equalities = new Stack<int>();
+            // Always equal to equalities[equalitiesLength-1][1]
+            string lastEquality = null;
+            int pointer = 0;  // Index of current position.
+                              // Number of characters that changed prior to the equality.
+            int length_insertions1 = 0;
+            int length_deletions1 = 0;
+            // Number of characters that changed after the equality.
+            int length_insertions2 = 0;
+            int length_deletions2 = 0;
+            while (pointer < diffs.Count)
+            {
+                if (diffs[pointer].Operation == Operation.Equal)
+                {  // Equality found.
+                    equalities.Push(pointer);
+                    length_insertions1 = length_insertions2;
+                    length_deletions1 = length_deletions2;
+                    length_insertions2 = 0;
+                    length_deletions2 = 0;
+                    lastEquality = diffs[pointer].Text;
+                }
+                else
+                {  // an insertion or deletion
+                    if (diffs[pointer].Operation == Operation.Insert)
+                    {
+                        length_insertions2 += diffs[pointer].Text.Length;
+                    }
+                    else
+                    {
+                        length_deletions2 += diffs[pointer].Text.Length;
+                    }
+                    // Eliminate an equality that is smaller or equal to the edits on both
+                    // sides of it.
+                    if (lastEquality != null && lastEquality.Length <= Math.Max(length_insertions1, length_deletions1) && 
+                        lastEquality.Length <= Math.Max(length_insertions2, length_deletions2))
+                    {
+                        // Duplicate record.
+                        diffs.Insert(equalities.Peek(), new Diff(Operation.Delete, lastEquality));
+                        // Change second copy to insert.
+                        diffs[equalities.Peek() + 1].Update(diffs[equalities.Peek() + 1].Text, Operation.Insert);
+                        // Throw away the equality we just deleted.
+                        equalities.Pop();
+                        if (equalities.Count > 0)
+                        {
+                            equalities.Pop();
+                        }
+                        pointer = equalities.Count > 0 ? equalities.Peek() : -1;
+                        length_insertions1 = 0;  // Reset the counters.
+                        length_deletions1 = 0;
+                        length_insertions2 = 0;
+                        length_deletions2 = 0;
+                        lastEquality = null;
+                        changes = true;
+                    }
+                }
+                pointer++;
+            }
+
+            // Normalize the diff.
+            if (changes)
+            {
+                Cleanup(diffs);
+            }
+
+            SemanticCleanupLossless(diffs);
+
+            // Find any overlaps between deletions and insertions.
+            // e.g: <del>abcxxx</del><ins>xxxdef</ins>
+            //   -> <del>abc</del>xxx<ins>def</ins>
+            // e.g: <del>xxxabc</del><ins>defxxx</ins>
+            //   -> <ins>def</ins>xxx<del>abc</del>
+            // Only extract an overlap if it is as big as the edit ahead or behind it.
+            pointer = 1;
+            while (pointer < diffs.Count)
+            {
+                if (diffs[pointer - 1].Operation == Operation.Delete &&
+                    diffs[pointer].Operation == Operation.Insert)
+                {
+                    string deletion = diffs[pointer - 1].Text;
+                    string insertion = diffs[pointer].Text;
+                    int overlap_length1 = GetCommonOverlap(deletion, insertion);
+                    int overlap_length2 = GetCommonOverlap(insertion, deletion);
+                    if (overlap_length1 >= overlap_length2)
+                    {
+                        if (overlap_length1 >= deletion.Length / 2.0 ||
+                            overlap_length1 >= insertion.Length / 2.0)
+                        {
+                            // Overlap found.
+                            // Insert an equality and trim the surrounding edits.
+                            diffs.Insert(pointer, new Diff(Operation.Equal,
+                                insertion.Substring(0, overlap_length1)));
+                            diffs[pointer - 1].Update(deletion.Substring(0, deletion.Length - overlap_length1));
+                            diffs[pointer + 1].Update(insertion.Substring(overlap_length1));
+                            pointer++;
+                        }
+                    }
+                    else
+                    {
+                        if (overlap_length2 >= deletion.Length / 2.0 ||
+                            overlap_length2 >= insertion.Length / 2.0)
+                        {
+                            // Reverse overlap found.
+                            // Insert an equality and swap and trim the surrounding edits.
+                            diffs.Insert(pointer, new Diff(Operation.Equal, deletion.Substring(0, overlap_length2)));
+                            diffs[pointer - 1].Update(insertion.Substring(0, insertion.Length - overlap_length2), Operation.Insert);
+                            diffs[pointer + 1].Update(deletion.Substring(overlap_length2), Operation.Delete);
+                            pointer++;
+                        }
+                    }
+                    pointer++;
+                }
+                pointer++;
+            }
+        }
+
+        /**
+         * Look for single edits surrounded on both sides by equalities
+         * which can be shifted sideways to align the edit to a word boundary.
+         * e.g: The c<ins>at c</ins>ame. -> The <ins>cat </ins>came.
+         * @param diffs List of Diff objects.
+         */
+        public void SemanticCleanupLossless(List<Diff> diffs)
+        {
+            int pointer = 1;
+            // Intentionally ignore the first and last element (don't need checking).
+            while (pointer < diffs.Count - 1)
+            {
+                if (diffs[pointer - 1].Operation == Operation.Equal &&
+                    diffs[pointer + 1].Operation == Operation.Equal)
+                {
+                    // This is a single edit surrounded by equalities.
+                    string equality1 = diffs[pointer - 1].Text;
+                    string edit = diffs[pointer].Text;
+                    string equality2 = diffs[pointer + 1].Text;
+
+                    // First, shift the edit as far left as possible.
+                    int commonOffset = GetCommonSuffixLength(equality1, edit);
+                    if (commonOffset > 0)
+                    {
+                        string commonString = edit.Substring(edit.Length - commonOffset);
+                        equality1 = equality1.Substring(0, equality1.Length - commonOffset);
+                        edit = commonString + edit.Substring(0, edit.Length - commonOffset);
+                        equality2 = commonString + equality2;
+                    }
+
+                    // Second, step character by character right,
+                    // looking for the best fit.
+                    string bestEquality1 = equality1;
+                    string bestEdit = edit;
+                    string bestEquality2 = equality2;
+                    int bestScore = GetSemanticScore(equality1, edit) +
+                        GetSemanticScore(edit, equality2);
+                    while (edit.Length != 0 && equality2.Length != 0
+                        && edit[0] == equality2[0])
+                    {
+                        equality1 += edit[0];
+                        edit = edit.Substring(1) + equality2[0];
+                        equality2 = equality2.Substring(1);
+                        int score = GetSemanticScore(equality1, edit) +
+                            GetSemanticScore(edit, equality2);
+                        // The >= encourages trailing rather than leading whitespace on
+                        // edits.
+                        if (score >= bestScore)
+                        {
+                            bestScore = score;
+                            bestEquality1 = equality1;
+                            bestEdit = edit;
+                            bestEquality2 = equality2;
+                        }
+                    }
+
+                    if (diffs[pointer - 1].Text != bestEquality1)
+                    {
+                        // We have an improvement, save it back to the diff.
+                        if (bestEquality1.Length != 0)
+                        {
+                            diffs[pointer - 1].Update(bestEquality1);
+                        }
+                        else
+                        {
+                            diffs.RemoveAt(pointer - 1);
+                            pointer--;
+                        }
+                        diffs[pointer].Update(bestEdit);
+                        if (bestEquality2.Length != 0)
+                        {
+                            diffs[pointer + 1].Update(bestEquality2);
+                        }
+                        else
+                        {
+                            diffs.RemoveAt(pointer + 1);
+                            pointer--;
+                        }
+                    }
+                }
+                pointer++;
+            }
+        }
+
+        /**
+         * Given two strings, compute a score representing whether the internal
+         * boundary falls on logical boundaries.
+         * Scores range from 6 (best) to 0 (worst).
+         * @param one First string.
+         * @param two Second string.
+         * @return The score.
+         */
+        private int GetSemanticScore(string one, string two)
+        {
+            if (one.Length == 0 || two.Length == 0)
+            {
+                // Edges are the best.
+                return 6;
+            }
+
+            // Each port of this function behaves slightly differently due to
+            // subtle differences in each language's definition of things like
+            // 'whitespace'.  Since this function's purpose is largely cosmetic,
+            // the choice has been made to use each language's native features
+            // rather than force total conformity.
+            char char1 = one[one.Length - 1];
+            char char2 = two[0];
+            bool nonAlphaNumeric1 = !Char.IsLetterOrDigit(char1);
+            bool nonAlphaNumeric2 = !Char.IsLetterOrDigit(char2);
+            bool whitespace1 = nonAlphaNumeric1 && Char.IsWhiteSpace(char1);
+            bool whitespace2 = nonAlphaNumeric2 && Char.IsWhiteSpace(char2);
+
+            if (nonAlphaNumeric1 && !whitespace1 && whitespace2)
+            {
+                // Three points for end of sentences.
+                return 3;
+            }
+            else if (whitespace1 || whitespace2)
+            {
+                // Two points for whitespace.
+                return 2;
+            }
+            else if (nonAlphaNumeric1 || nonAlphaNumeric2)
+            {
+                // One point for non-alphanumeric.
+                return 1;
+            }
+            return 0;
         }
     }
 }

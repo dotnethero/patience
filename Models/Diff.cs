@@ -25,6 +25,12 @@
         {
             Text = newText;
         }
+
+        public void Update(string newText, Operation operation)
+        {
+            Text = newText;
+            Operation = operation;
+        }
         
         public override string ToString()
         {
