@@ -26,6 +26,11 @@ namespace Patience.Core
             b_low = bLow;
             b_high = bHigh;
         }
+
+        public override string ToString()
+        {
+            return $"A:{a_low}-{a_high}, B:{b_low}-{b_high}";
+        }
     }
 
     class Match
@@ -39,6 +44,11 @@ namespace Patience.Core
         {
             a_line = aLine;
             b_line = bLine;
+        }
+
+        public override string ToString()
+        {
+            return $"A:{a_line}, B:{b_line}";
         }
     }
 
@@ -67,6 +77,12 @@ namespace Patience.Core
         {
             var slice = new Slice(0, _a.Count, 0, _b.Count);
             return Diff(slice);
+        }
+
+        public List<LineDiff> Myers()
+        {
+            var slice = new Slice(0, _a.Count, 0, _b.Count);
+            return Myers(slice);
         }
 
         private List<LineDiff> Myers(Slice slice)
@@ -180,7 +196,13 @@ namespace Patience.Core
 
         private List<LineDiff> Diff(Slice slice)
         {
-            var match = PatienceSort(UniqueMatchingLines(slice));
+            if (slice.a_low == slice.a_high && slice.b_low == slice.a_high)
+            {
+                return new List<LineDiff>(0);
+            }
+
+            var unique = UniqueMatchingLines(slice);
+            var match = PatienceSort(unique);
             if (match == null)
             {
                 return _fallback(slice);
@@ -201,7 +223,7 @@ namespace Patience.Core
                     return lines;
                 }
 
-                var change = _a[a_line];
+                var change = _a[match.a_line];
                 lines.Add(new LineDiff(Operation.Equal, change));
 
                 (a_line, b_line) = (match.a_line + 1, match.b_line + 1);
