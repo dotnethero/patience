@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.IO;
-using Patience.Core;
+using Patience.Models;
 
 namespace Patience.ViewModels
 {

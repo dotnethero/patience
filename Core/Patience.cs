@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using Patience.Models;
 
 // https://blog.jcoglan.com/2017/09/28/implementing-patience-diff/
@@ -19,8 +18,6 @@ namespace Patience.Core
 
         public IEnumerable<int> a_range => Enumerable.Range(a_low, a_high - a_low);
         public IEnumerable<int> b_range => Enumerable.Range(b_low, b_high - b_low);
-
-        public bool not_empty() => a_low < a_high && b_low < b_high;
 
         public Slice(int aLow, int aHigh, int bLow, int bHigh)
         {
@@ -110,7 +107,7 @@ namespace Patience.Core
             lineArray.Insert(0, null);
 
             var dmp = new Myers();
-            var diffs = dmp.diff_main(lineText1, lineText2);
+            var diffs = dmp.Diff(lineText1, lineText2);
             var result = new List<LineDiff>();
             foreach (var diff in diffs)
             {
@@ -122,7 +119,6 @@ namespace Patience.Core
 
             if (true) // TODO: here should be option for interline diff
             {
-                // TODO: can i move it before main diff?
                 var commonPrefix = new List<LineDiff>();
                 var commonSuffix = new List<LineDiff>();
                 var commonPrefixComplete = false;
@@ -163,7 +159,7 @@ namespace Patience.Core
                     {
                         var del = deletes[i];
                         var ins = inserts[i];
-                        var interlineDiffs = dmp.diff_main(del.Diffs[0].Text, ins.Diffs[0].Text);
+                        var interlineDiffs = dmp.Diff(del.Diffs[0].Text, ins.Diffs[0].Text);
                         var diff = new LineDiff(Operation.Modify);
                         foreach (var interlineDiff in interlineDiffs)
                         {
@@ -211,7 +207,6 @@ namespace Patience.Core
                 (a_line, b_line) = (match.a_line + 1, match.b_line + 1);
                 match = match.next;
             }
-            return null;
         }
 
         private IEnumerable<Match> UniqueMatchingLines(Slice slice)

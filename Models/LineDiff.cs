@@ -1,11 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using Patience.Models;
 
-namespace Patience.Core
+namespace Patience.Models
 {
-    internal class LineDiff
+    public class LineDiff
     {
         public Operation Operation { get; set; }
         public List<Diff> Diffs { get; }

@@ -2,34 +2,28 @@
 {
     public class Diff
     {
-        public Operation Operation { get; set; }
-        public string Text { get; set; }
+        public Operation Operation { get; private set; }
+        public string Text { get; private set; }
 
         public Diff(Operation operation, string text) 
         {
-            this.Operation = operation;
-            this.Text = text;
+            Operation = operation;
+            Text = text;
+        }
+        
+        public void Prepend(string prefix)
+        {
+            Text = prefix + Text;
         }
 
-        protected bool Equals(Diff other)
+        public void Append(string suffix)
         {
-            return Operation == other.Operation && string.Equals(Text, other.Text);
+            Text = Text + suffix;
         }
 
-        public override bool Equals(object obj)
+        public void Update(string newText)
         {
-            if (ReferenceEquals(null, obj)) return false;
-            if (ReferenceEquals(this, obj)) return true;
-            if (obj.GetType() != this.GetType()) return false;
-            return Equals((Diff) obj);
-        }
-
-        public override int GetHashCode()
-        {
-            unchecked
-            {
-                return ((int) Operation * 397) ^ (Text != null ? Text.GetHashCode() : 0);
-            }
+            Text = newText;
         }
         
         public override string ToString()

@@ -56,7 +56,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
-    <Compile Include="Core\DiffMatchPatch.cs" />
+    <Compile Include="Core\Myers.cs" />
     <Compile Include="Models\Diff.cs" />
     <Compile Include="Models\Operation.cs" />
     <Compile Include="ViewModels\DiffShowMode.cs" />
