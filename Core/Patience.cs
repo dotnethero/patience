@@ -62,38 +62,23 @@ namespace Patience.Core
 
     class Patience
     {
-        private readonly Func<Slice, List<LineDiff>> _fallback;
-        private readonly List<string> _a;
-        private readonly List<string> _b;
+        public List<LineDiff> Diff(string a, string b)
+        {
+            var a_lines = a.GetLines().ToList();
+            var b_lines = b.GetLines().ToList();
+            var slice = new Slice(0, a_lines.Count, 0, b_lines.Count);
+            return Diff(a_lines, b_lines, slice);
+        }
         
-        public Patience(string a, string b)
-        {
-            _fallback = Myers;
-            _a = a.GetLines().ToList();
-            _b = b.GetLines().ToList();
-        }
-
-        public List<LineDiff> Diff()
-        {
-            var slice = new Slice(0, _a.Count, 0, _b.Count);
-            return Diff(slice);
-        }
-
-        public List<LineDiff> Myers()
-        {
-            var slice = new Slice(0, _a.Count, 0, _b.Count);
-            return Myers(slice);
-        }
-
-        private List<LineDiff> Myers(Slice slice)
+        private List<LineDiff> Myers(List<string> a, List<string> b, Slice slice)
         {
             if (slice.a_high == slice.a_low && slice.b_high == slice.b_low)
             {
                 return new List<LineDiff>(0);
             }
 
-            var a_lines = _a.GetRange(slice.a_low, slice.a_high - slice.a_low);
-            var b_lines = _b.GetRange(slice.b_low, slice.b_high - slice.b_low);
+            var a_lines = a.GetRange(slice.a_low, slice.a_high - slice.a_low);
+            var b_lines = b.GetRange(slice.b_low, slice.b_high - slice.b_low);
 
             var hash = new Dictionary<string, char>(a_lines.Count + b_lines.Count);
             var a_chars = new StringBuilder(a_lines.Count);
@@ -195,13 +180,13 @@ namespace Patience.Core
             return result;
         }
 
-        private List<LineDiff> Diff(Slice slice)
+        private List<LineDiff> Diff(List<string> a, List<string> b, Slice slice)
         {
-            var unique = UniqueMatchingLines(slice);
+            var unique = UniqueMatchingLines(a, b, slice);
             var match = PatienceSort(unique);
             if (match == null)
             {
-                return _fallback(slice);
+                return Myers(a, b, slice);
             }
 
             var lines = new List<LineDiff>();
@@ -213,13 +198,13 @@ namespace Patience.Core
                     : (slice.a_high, slice.b_high);
 
                 var subslice = new Slice(a_line, a_next, b_line, b_next);
-                lines.AddRange(Diff(subslice));
+                lines.AddRange(Diff(a, b, subslice));
                 if (match == null)
                 {
                     return lines;
                 }
 
-                var change = _a[match.a_line];
+                var change = a[match.a_line];
                 lines.Add(new LineDiff(Operation.Equal, change));
 
                 (a_line, b_line) = (match.a_line + 1, match.b_line + 1);
@@ -227,12 +212,12 @@ namespace Patience.Core
             }
         }
 
-        private IEnumerable<Match> UniqueMatchingLines(Slice slice)
+        private IEnumerable<Match> UniqueMatchingLines(List<string> a, List<string> b, Slice slice)
         {
             var counts = new Dictionary<string, LineOccurrence>();
             foreach (var n in slice.a_range)
             {
-                var text = _a[n];
+                var text = a[n];
                 var occurrence = counts.GetOrCreate(text, key => new LineOccurrence());
                 occurrence.a_count++;
                 occurrence.a_first = occurrence.a_first ?? n;
@@ -241,7 +226,7 @@ namespace Patience.Core
 
             foreach (var n in slice.b_range)
             {
-                var text = _b[n];
+                var text = b[n];
                 var occurrence = counts.GetOrCreate(text, key => new LineOccurrence());
                 occurrence.b_count++;
                 occurrence.b_first = occurrence.b_first ?? n;
