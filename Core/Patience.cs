@@ -197,11 +197,6 @@ namespace Patience.Core
 
         private List<LineDiff> Diff(Slice slice)
         {
-            if (slice.a_low == slice.a_high && slice.b_low == slice.a_high)
-            {
-                return new List<LineDiff>(0);
-            }
-
             var unique = UniqueMatchingLines(slice);
             var match = PatienceSort(unique);
             if (match == null)
