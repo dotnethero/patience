@@ -72,112 +72,14 @@ namespace Patience.Core
         
         private List<LineDiff> Myers(List<string> a, List<string> b, Slice slice)
         {
-            if (slice.a_high == slice.a_low && slice.b_high == slice.b_low)
-            {
-                return new List<LineDiff>(0);
-            }
+            if (slice.a_high == slice.a_low && slice.b_high == slice.b_low) return new List<LineDiff>(0);
 
+            var myers = new Myers();
             var a_lines = a.GetRange(slice.a_low, slice.a_high - slice.a_low);
             var b_lines = b.GetRange(slice.b_low, slice.b_high - slice.b_low);
-
-            var hash = new Dictionary<string, char>(a_lines.Count + b_lines.Count);
-            var a_chars = new StringBuilder(a_lines.Count);
-            var b_chars = new StringBuilder(b_lines.Count);
-            foreach (var line in a_lines)
-            {
-                if (!hash.ContainsKey(line))
-                {
-                    var index = (char) (hash.Count + 1); // 1-based index
-                    hash.Add(line, index);
-                }
-                a_chars.Append(hash[line]);
-            }
-            foreach (var line in b_lines)
-            {
-                if (!hash.ContainsKey(line))
-                {
-                    var index = (char) (hash.Count + 1); // 1-based index
-                    hash.Add(line, index);
-                }
-                b_chars.Append(hash[line]);
-            }
-
-            var lineText1 = a_chars.ToString();
-            var lineText2 = b_chars.ToString();
-            var lineArray = hash.OrderBy(x => x.Value).Select(x => x.Key).ToList();
-            lineArray.Insert(0, null);
-
-            var dmp = new Myers();
-            var diffs = dmp.Diff(lineText1, lineText2);
-            var result = new List<LineDiff>();
-            foreach (var diff in diffs)
-            {
-                foreach (var ch in diff.Text)
-                {
-                    result.Add(new LineDiff(diff.Operation, lineArray[ch]));
-                }
-            }
-
-            if (true) // TODO: here should be option for interline diff
-            {
-                var commonPrefix = new List<LineDiff>();
-                var commonSuffix = new List<LineDiff>();
-                var commonPrefixComplete = false;
-                var commonSuffixComplete = false;
-                for (var index = 0; index < result.Count; index++)
-                {
-                    var diffStart = result[index];
-                    if (diffStart.Operation == Operation.Equal && !commonPrefixComplete)
-                    {
-                        commonPrefix.Add(diffStart);
-                    }
-                    else
-                    {
-                        commonPrefixComplete = true;
-                    }
-
-                    var diffEnd = result[result.Count - index - 1];
-                    if (diffEnd.Operation == Operation.Equal && !commonSuffixComplete)
-                    {
-                        commonSuffix.Add(diffEnd);
-                    }
-                    else
-                    {
-                        commonSuffixComplete = true;
-                    }
-                }
-
-                var deletes = result.Where(x => x.Operation == Operation.Delete).ToList();
-                var inserts = result.Where(x => x.Operation == Operation.Insert).ToList();
-                if (inserts.Count == deletes.Count && inserts.Count + deletes.Count == result.Count - commonPrefix.Count - commonSuffix.Count)
-                {
-                    var interlineResults = new List<LineDiff>();
-                    foreach (var diff in commonPrefix)
-                    {
-                        interlineResults.Add(diff);
-                    }
-                    for (var i = 0; i < deletes.Count; i++)
-                    {
-                        var del = deletes[i];
-                        var ins = inserts[i];
-                        var interlineDiffs = dmp.Diff(del.Diffs[0].Text, ins.Diffs[0].Text);
-                        dmp.SemanticCleanup(interlineDiffs);
-                        var diff = new LineDiff(Operation.Modify);
-                        foreach (var interlineDiff in interlineDiffs)
-                        {
-                            diff.Add(interlineDiff);
-                        }
-                        interlineResults.Add(diff);
-                    }
-                    foreach (var diff in commonSuffix)
-                    {
-                        interlineResults.Add(diff);
-                    }
-                    return interlineResults;
-                }
-            }
-
-            return result;
+            var linesDiff = myers.LinesDiff(a_lines, b_lines);
+            var linesDiffWithEdits = myers.MergeLineModifications(linesDiff);
+            return linesDiffWithEdits;
         }
 
         private List<LineDiff> Diff(List<string> a, List<string> b, Slice slice)
@@ -193,7 +95,7 @@ namespace Patience.Core
             var (a_line, b_line) = (slice.a_low, slice.b_low);
             while (true)
             {
-                var (a_next, b_next) = match != null
+                var (a_next, b_next) = match != null 
                     ? (match.a_line, match.b_line) 
                     : (slice.a_high, slice.b_high);
 

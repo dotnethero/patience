@@ -5,6 +5,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Text;
 using Patience.Models;
 
 namespace Patience.Core
@@ -44,6 +46,120 @@ namespace Patience.Core
 
     public class Myers
     {
+        public List<LineDiff> LinesDiff(List<string> a, List<string> b)
+        {
+            var (lineText1, lineText2, lineArray) = GetLinesText(a, b);
+            var diffs = Diff(lineText1, lineText2);
+            var result = new List<LineDiff>();
+            foreach (var diff in diffs)
+            {
+                foreach (var ch in diff.Text)
+                {
+                    result.Add(new LineDiff(diff.Operation, lineArray[ch]));
+                }
+            }
+            return result;
+        }
+
+        public List<LineDiff> MergeLineModifications(List<LineDiff> straightLineDiffs)
+        {
+            var commonPrefix = new List<LineDiff>();
+            var commonSuffix = new List<LineDiff>();
+            var commonPrefixComplete = false;
+            var commonSuffixComplete = false;
+            for (var index = 0; index < straightLineDiffs.Count; index++)
+            {
+                var diffStart = straightLineDiffs[index];
+                if (diffStart.Operation == Operation.Equal && !commonPrefixComplete)
+                {
+                    commonPrefix.Add(diffStart);
+                }
+                else
+                {
+                    commonPrefixComplete = true;
+                }
+
+                var diffEnd = straightLineDiffs[straightLineDiffs.Count - index - 1];
+                if (diffEnd.Operation == Operation.Equal && !commonSuffixComplete)
+                {
+                    commonSuffix.Add(diffEnd);
+                }
+                else
+                {
+                    commonSuffixComplete = true;
+                }
+
+                if (commonPrefixComplete && commonSuffixComplete) break;
+            }
+
+            var deletes = straightLineDiffs.Where(x => x.Operation == Operation.Delete).ToList();
+            var inserts = straightLineDiffs.Where(x => x.Operation == Operation.Insert).ToList();
+            if (inserts.Count == deletes.Count && inserts.Count + deletes.Count == straightLineDiffs.Count - commonPrefix.Count - commonSuffix.Count)
+            {
+                var interlineResults = new List<LineDiff>();
+                foreach (var diff in commonPrefix)
+                {
+                    interlineResults.Add(diff);
+                }
+
+                for (var i = 0; i < deletes.Count; i++)
+                {
+                    var del = deletes[i];
+                    var ins = inserts[i];
+                    var interlineDiffs = Diff(del.Diffs[0].Text, ins.Diffs[0].Text);
+                    SemanticCleanup(interlineDiffs);
+                    var diff = new LineDiff(Operation.Modify);
+                    foreach (var interlineDiff in interlineDiffs)
+                    {
+                        diff.Add(interlineDiff);
+                    }
+                    interlineResults.Add(diff);
+                }
+
+                foreach (var diff in commonSuffix)
+                {
+                    interlineResults.Add(diff);
+                }
+
+                return interlineResults;
+            }
+            return straightLineDiffs; // not applicable
+        }
+
+        private static (string lineText1, string lineText2, List<string> lineArray) GetLinesText(List<string> a, List<string> b)
+        {
+            var hash = new Dictionary<string, char>(a.Count + b.Count);
+            var a_chars = new StringBuilder(a.Count);
+            var b_chars = new StringBuilder(b.Count);
+            foreach (var line in a)
+            {
+                if (!hash.ContainsKey(line))
+                {
+                    var index = (char)(hash.Count + 1); // 1-based index
+                    hash.Add(line, index);
+                }
+
+                a_chars.Append(hash[line]);
+            }
+
+            foreach (var line in b)
+            {
+                if (!hash.ContainsKey(line))
+                {
+                    var index = (char)(hash.Count + 1); // 1-based index
+                    hash.Add(line, index);
+                }
+
+                b_chars.Append(hash[line]);
+            }
+
+            var lineText1 = a_chars.ToString();
+            var lineText2 = b_chars.ToString();
+            var lineArray = hash.OrderBy(x => x.Value).Select(x => x.Key).ToList();
+            lineArray.Insert(0, null);
+            return (lineText1, lineText2, lineArray);
+        }
+
         /**
          * Find the differences between two texts.
          * Simplifies the problem by stripping any common prefix or suffix off the texts before diffing.
