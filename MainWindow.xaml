@@ -28,7 +28,7 @@
         <Menu DockPanel.Dock="Top">
             <MenuItem Header="File">
                 <MenuItem Header="Open..." />
-                <MenuItem Header="Exit" />
+                <MenuItem Header="Exit" Click="OnExit" />
             </MenuItem>
             <MenuItem Header="View">
                 <MenuItem 

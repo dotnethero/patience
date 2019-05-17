@@ -30,5 +30,10 @@ namespace Patience
         {
             file1.ScrollToVerticalOffset(e.VerticalOffset);
         }
+
+        private void OnExit(object sender, RoutedEventArgs e)
+        {
+            Application.Current.Shutdown(0);
+        }
     }
 }
