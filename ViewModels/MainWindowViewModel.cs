@@ -4,15 +4,18 @@ using Patience.Models;
 
 namespace Patience.ViewModels
 {
-    internal class MainWindowViewModel
+    public class MainWindowViewModel
     {
         public List<LineDiff> Diff { get; set; }
 
         public MainWindowViewModel()
         {
-            var file1 = File.ReadAllText("Data/before.txt");
-            var file2 = File.ReadAllText("Data/after.txt");
+        }
 
+        public MainWindowViewModel(string path1, string path2)
+        {
+            var file1 = File.ReadAllText(path1);
+            var file2 = File.ReadAllText(path2);
             var diffs = new Core.Patience().Diff(file1, file2);
             Diff = diffs;
         }
