@@ -43,10 +43,10 @@ namespace Patience.Views
         
         private class UserControlBrushes
         {
-            public Brush ModifiedDeleted { get; set; }
-            public Brush ModifiedInserted { get; set; }
             public Brush Deleted { get; set; }
             public Brush Inserted { get; set; }
+            public Brush InlineDeleted { get; set; }
+            public Brush InlineInserted { get; set; }
             public Brush AbsentArea { get; set; }
             public Brush AbsentAreaForeground { get; set; }
         }
@@ -57,10 +57,10 @@ namespace Patience.Views
 
             _brushes = new UserControlBrushes
             {
-                ModifiedDeleted = new SolidColorBrush(Color.FromRgb(255, 204, 204)), 
-                ModifiedInserted = new SolidColorBrush(Color.FromRgb(235, 241, 221)), 
-                Deleted = new SolidColorBrush(Color.FromRgb(255, 153, 153)),
-                Inserted = new SolidColorBrush(Color.FromRgb(215, 227, 188)),
+                Deleted = new SolidColorBrush(Color.FromRgb(255, 204, 204)), 
+                Inserted = new SolidColorBrush(Color.FromRgb(235, 241, 221)), 
+                InlineDeleted = new SolidColorBrush(Color.FromRgb(255, 153, 153)),
+                InlineInserted = new SolidColorBrush(Color.FromRgb(215, 227, 188)),
                 AbsentArea = (Brush) TryFindResource("AbsentArea"),
                 AbsentAreaForeground = Brushes.DarkGray
             };
@@ -105,7 +105,7 @@ namespace Patience.Views
                 }
                 if (line.Operation == Operation.Modify)
                 {
-                    paragraph.Background = _brushes.ModifiedDeleted;
+                    paragraph.Background = _brushes.Deleted;
                 }
                 if (line.Operation == Operation.Delete)
                 {
@@ -121,7 +121,7 @@ namespace Patience.Views
                 }
                 if (line.Operation == Operation.Modify)
                 {
-                    paragraph.Background = _brushes.ModifiedInserted;
+                    paragraph.Background = _brushes.Inserted;
                 }
                 if (line.Operation == Operation.Delete)
                 {
@@ -150,12 +150,12 @@ namespace Patience.Views
                     if (diff.Operation == Operation.Delete && Mode == DiffViewMode.File1)
                     {
                         inline.Text = diff.Text;
-                        inline.Background = _brushes.Deleted;
+                        inline.Background = _brushes.InlineDeleted;
                     }
                     if (diff.Operation == Operation.Insert && Mode == DiffViewMode.File2)
                     {
                         inline.Text = diff.Text;
-                        inline.Background = _brushes.Inserted;
+                        inline.Background = _brushes.InlineInserted;
                     }
                     if (diff.Operation == Operation.Equal)
                     {

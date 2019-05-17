@@ -15,7 +15,7 @@
         <converters:ParameterVisibilityConverter x:Key="ParameterVisibility" />
         <converters:ParameterBooleanConverter x:Key="ParameterBoolean" />
         <Style TargetType="GridSplitter">
-            <Setter Property="Background" Value="GhostWhite" />
+            <Setter Property="Background" Value="WhiteSmoke" />
             <Setter Property="HorizontalAlignment" Value="Stretch" />
             <Setter Property="VerticalAlignment" Value="Stretch" />
         </Style>

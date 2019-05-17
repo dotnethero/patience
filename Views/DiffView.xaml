@@ -29,7 +29,7 @@
             <Setter Property="IsReadOnly" Value="True" />
             <Setter Property="Focusable" Value="False" />
             <Setter Property="BorderThickness" Value="0" />
-            <Setter Property="Background" Value="WhiteSmoke" />
+            <Setter Property="Background" Value="GhostWhite" />
         </Style>
         <VisualBrush x:Key="AbsentArea" TileMode="Tile" Viewport="0,0,15,15" ViewportUnits="Absolute" Viewbox="0,0,15,15" ViewboxUnits="Absolute">
             <VisualBrush.Visual>
@@ -41,7 +41,7 @@
     </UserControl.Resources>
     <Grid>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="50" />
+            <ColumnDefinition Width="40" />
             <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
         <TextBox 
