@@ -6,28 +6,45 @@
         xmlns:local="clr-namespace:Patience"
         xmlns:views="clr-namespace:Patience.Views"
         xmlns:viewModels="clr-namespace:Patience.ViewModels"
+        xmlns:converters="clr-namespace:Patience.Converters"
         mc:Ignorable="d"
         Title="Patience"
         Height="850" 
         Width="1400" d:DataContext="{d:DesignInstance {x:Type viewModels:MainWindowViewModel}}">
     <Window.Resources>
+        <converters:ParameterVisibilityConverter x:Key="ParameterVisibility" />
+        <converters:ParameterBooleanConverter x:Key="ParameterBoolean" />
         <Style TargetType="GridSplitter">
             <Setter Property="Background" Value="GhostWhite" />
             <Setter Property="HorizontalAlignment" Value="Stretch" />
             <Setter Property="VerticalAlignment" Value="Stretch" />
         </Style>
     </Window.Resources>
+    <Window.InputBindings>
+        <KeyBinding Modifiers="Control" Key="U" Command="{Binding SetModeCommand}" CommandParameter="Unified" />
+        <KeyBinding Modifiers="Control" Key="I" Command="{Binding SetModeCommand}" CommandParameter="Split" />
+    </Window.InputBindings>
     <DockPanel>
         <Menu DockPanel.Dock="Top">
             <MenuItem Header="File">
                 <MenuItem Header="Open..." />
                 <MenuItem Header="Exit" />
             </MenuItem>
+            <MenuItem Header="View">
+                <MenuItem 
+                    Header="_Split View"
+                    Command="{Binding SetModeCommand}" CommandParameter="Split"
+                    IsChecked="{Binding Path=Mode, Converter={StaticResource ParameterBoolean}, ConverterParameter=Split, Mode=OneWay}" />
+                <MenuItem
+                    Header="_Unified View"
+                    Command="{Binding SetModeCommand}" CommandParameter="Unified"
+                    IsChecked="{Binding Path=Mode, Converter={StaticResource ParameterBoolean}, ConverterParameter=Unified, Mode=OneWay}" />
+            </MenuItem>
             <MenuItem Header="Help">
                 <MenuItem Header="About" />
             </MenuItem>
         </Menu>
-        <Grid>
+        <Grid Visibility="{Binding Path=Mode, Converter={StaticResource ParameterVisibility}, ConverterParameter=Split, Mode=OneWay}">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"></ColumnDefinition>
                 <ColumnDefinition Width="5"></ColumnDefinition>
@@ -37,7 +54,7 @@
                 x:Name="file1" 
                 Grid.Column="0" 
                 DataContext="{Binding Diff}" 
-                ShowMode="File1"
+                Mode="File1"
                 ScrollBarVisibility="Hidden"
                 ScrollChanged="File1_OnScrollChanged"/>
             <GridSplitter Grid.Column="1"></GridSplitter>
@@ -45,9 +62,14 @@
                 x:Name="file2" 
                 Grid.Column="2" 
                 DataContext="{Binding Diff}" 
-                ShowMode="File2"
+                Mode="File2"
                 ScrollBarVisibility="Visible"
                 ScrollChanged="File2_OnScrollChanged" />
+            
         </Grid>
+        <Grid Visibility="{Binding Path=Mode, Converter={StaticResource ParameterVisibility}, ConverterParameter=Unified, Mode=OneWay}">
+            <views:UnifiedView DataContext="{Binding Diff}" />
+        </Grid>
+
     </DockPanel>
 </Window>

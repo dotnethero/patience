@@ -1,6 +1,6 @@
 ﻿namespace Patience.ViewModels
 {
-    public enum DiffShowMode
+    public enum DiffViewMode
     {
         File1,
         File2

@@ -30,14 +30,13 @@ namespace Patience.Views
             set => SetValue(ScrollBarVisibilityProperty, value);
         }
 
-        public static readonly DependencyProperty ShowModeProperty = DependencyProperty.Register(
-            "ShowMode", typeof(DiffShowMode), typeof(DiffView), new PropertyMetadata(default(DiffShowMode)));
+        public static readonly DependencyProperty ModeProperty = DependencyProperty.Register(
+            "Mode", typeof(DiffViewMode), typeof(DiffView), new PropertyMetadata(default(DiffViewMode)));
 
-
-        public DiffShowMode ShowMode
+        public DiffViewMode Mode
         {
-            get => (DiffShowMode) GetValue(ShowModeProperty);
-            set => SetValue(ShowModeProperty, value);
+            get => (DiffViewMode) GetValue(ModeProperty);
+            set => SetValue(ModeProperty, value);
         }
 
         #endregion
@@ -78,8 +77,8 @@ namespace Patience.Views
                 {
                     var paragraph = CreateParagraph(line);
                     document.Blocks.Add(paragraph);
-                    if (line.Operation == Operation.Delete && ShowMode == DiffShowMode.File2 ||
-                        line.Operation == Operation.Insert && ShowMode == DiffShowMode.File1)
+                    if (line.Operation == Operation.Delete && Mode == DiffViewMode.File2 ||
+                        line.Operation == Operation.Insert && Mode == DiffViewMode.File1)
                     {
                         lineNumbers.AppendLine();
                     }
@@ -97,7 +96,7 @@ namespace Patience.Views
         {
             var paragraph = new Paragraph();
 
-            if (ShowMode == DiffShowMode.File1)
+            if (Mode == DiffViewMode.File1)
             {
                 if (line.Operation == Operation.Insert)
                 {
@@ -114,7 +113,7 @@ namespace Patience.Views
                 }
             }
 
-            if (ShowMode == DiffShowMode.File2)
+            if (Mode == DiffViewMode.File2)
             {
                 if (line.Operation == Operation.Insert)
                 {
@@ -134,11 +133,11 @@ namespace Patience.Views
             foreach (var diff in line.Diffs)
             {
                 var inline = new Run();
-                if (line.Operation == Operation.Insert && ShowMode == DiffShowMode.File1)
+                if (line.Operation == Operation.Insert && Mode == DiffViewMode.File1)
                 {
                     inline.Text = "";
                 }
-                else if (line.Operation == Operation.Delete && ShowMode == DiffShowMode.File2)
+                else if (line.Operation == Operation.Delete && Mode == DiffViewMode.File2)
                 {
                     inline.Text = "";
                 }
@@ -148,12 +147,12 @@ namespace Patience.Views
                 }
                 else
                 {
-                    if (diff.Operation == Operation.Delete && ShowMode == DiffShowMode.File1)
+                    if (diff.Operation == Operation.Delete && Mode == DiffViewMode.File1)
                     {
                         inline.Text = diff.Text;
                         inline.Background = _brushes.Deleted;
                     }
-                    if (diff.Operation == Operation.Insert && ShowMode == DiffShowMode.File2)
+                    if (diff.Operation == Operation.Insert && Mode == DiffViewMode.File2)
                     {
                         inline.Text = diff.Text;
                         inline.Background = _brushes.Inserted;

@@ -56,14 +56,22 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Converters\ParameterBooleanConverter.cs" />
+    <Compile Include="Utils\ParameterCommand.cs" />
+    <Compile Include="Converters\ParameterVisibilityConverter.cs" />
     <Compile Include="Core\Myers.cs" />
     <Compile Include="Models\Diff.cs" />
     <Compile Include="Models\Operation.cs" />
-    <Compile Include="ViewModels\DiffShowMode.cs" />
+    <Compile Include="Properties\Annotations.cs" />
+    <Compile Include="ViewModels\DiffViewMode.cs" />
     <Compile Include="Models\LineDiff.cs" />
     <Compile Include="Core\Patience.cs" />
     <Compile Include="Core\Utils.cs" />
+    <Compile Include="ViewModels\MainWindowMode.cs" />
     <Compile Include="ViewModels\MainWindowViewModel.cs" />
+    <Compile Include="Views\UnifiedView.xaml.cs">
+      <DependentUpon>UnifiedView.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Views\DiffView.xaml.cs">
       <DependentUpon>DiffView.xaml</DependentUpon>
     </Compile>
@@ -79,6 +87,10 @@
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+    <Page Include="Views\UnifiedView.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
     <Page Include="Views\DiffView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>

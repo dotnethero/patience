@@ -1,5 +1,5 @@
 ﻿<UserControl 
-    x:Class="Patience.Views.DiffView"
+    x:Class="Patience.Views.UnifiedView"
     x:Name="Root"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -13,8 +13,9 @@
             <Setter Property="FontFamily" Value="Consolas" />
             <Setter Property="FontSize" Value="14" />
             <Setter Property="BorderThickness" Value="0" />
-            <Setter Property="VerticalScrollBarVisibility" Value="Hidden" />
+            <Setter Property="VerticalScrollBarVisibility" Value="Visible" />
             <Setter Property="HorizontalScrollBarVisibility" Value="Hidden" />
+            <Setter Property="Margin" Value="0"></Setter>
         </Style>
         <Style TargetType="Paragraph">
             <Setter Property="Margin" Value="0" />
@@ -29,30 +30,27 @@
             <Setter Property="IsReadOnly" Value="True" />
             <Setter Property="Focusable" Value="False" />
             <Setter Property="BorderThickness" Value="0" />
-            <Setter Property="Background" Value="WhiteSmoke" />
+            <Setter Property="Background" Value="GhostWhite" />
         </Style>
-        <VisualBrush x:Key="AbsentArea" TileMode="Tile" Viewport="0,0,15,15" ViewportUnits="Absolute" Viewbox="0,0,15,15" ViewboxUnits="Absolute">
-            <VisualBrush.Visual>
-                <Grid Background="White">
-                    <Path Data="M 0 15 L 15 0" Stroke="DarkGray" />
-                </Grid>
-            </VisualBrush.Visual>
-        </VisualBrush>
     </UserControl.Resources>
     <Grid>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="50" />
+            <ColumnDefinition Width="40" />
+            <ColumnDefinition Width="40" />
             <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
         <TextBox 
             Grid.Column="0"
-            Name="lineBox"
+            Name="leftNumbersBox"
+            Style="{StaticResource LineNumbers}" />
+        <TextBox 
+            Grid.Column="1"
+            Name="rightNumbersBox"
             Style="{StaticResource LineNumbers}" />
         <RichTextBox 
-            Grid.Column="1" 
+            Grid.Column="2" 
             Name="textBox" 
             IsReadOnly="True"
-            VerticalScrollBarVisibility="{Binding ElementName=Root, Path=ScrollBarVisibility}"
             ScrollViewer.ScrollChanged="OnScrollChanged" />
     </Grid>
 </UserControl>
