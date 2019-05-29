@@ -16,7 +16,8 @@ namespace Patience.Core
 
         internal static string[] GetLines(this string text)
         {
-            return text.Split(new[] { Environment.NewLine }, StringSplitOptions.None);
+            var newLine = text.IndexOf("\r", StringComparison.Ordinal) > -1 ? "\r\n" : "\n";
+            return text.Split(new[] { newLine }, StringSplitOptions.None);
         }
     }
 }
