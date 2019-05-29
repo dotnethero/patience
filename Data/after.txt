@@ -91,12 +91,12 @@
                 FontSize="12">
             </TextBox>
             <CheckBox
-                Name="WordWrap"
-                Margin="0,0,25,8"
-                VerticalContentAlignment="Bottom"
-                HorizontalAlignment="Right"
-                VerticalAlignment="Bottom">
-                text wrapping
+                    Name="WordWrap"
+                    Margin="0,0,25,8"
+                    VerticalContentAlignment="Bottom"
+                    HorizontalAlignment="Right"
+                    VerticalAlignment="Bottom">
+                    text wrapping
             </CheckBox>
         </Grid>
     </DockPanel>

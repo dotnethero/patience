@@ -106,13 +106,9 @@ namespace Patience.Core
                 {
                     var del = deletes[i];
                     var ins = inserts[i];
-                    var interlineDiffs = Diff(del.Diffs[0].Text, ins.Diffs[0].Text);
-                    SemanticCleanup(interlineDiffs);
-                    var diff = new LineDiff(Operation.Modify);
-                    foreach (var interlineDiff in interlineDiffs)
-                    {
-                        diff.Add(interlineDiff);
-                    }
+                    var text1 = del.Diffs[0].Text;
+                    var text2 = ins.Diffs[0].Text;
+                    var diff = GetLineDiff(text1, text2);
                     interlineResults.Add(diff);
                 }
 
@@ -124,6 +120,24 @@ namespace Patience.Core
                 return interlineResults;
             }
             return straightLineDiffs; // not applicable
+        }
+
+        public LineDiff GetLineDiff(string text1, string text2)
+        {
+            if (text1 == text2)
+            {
+                return new LineDiff(Operation.Equal, text1);
+            }
+
+            var interlineDiffs = Diff(text1, text2);
+            SemanticCleanup(interlineDiffs);
+            var diff = new LineDiff(Operation.Modify);
+            foreach (var interlineDiff in interlineDiffs)
+            {
+                diff.Add(interlineDiff);
+            }
+
+            return diff;
         }
 
         private static (string lineText1, string lineText2, List<string> lineArray) GetLinesText(List<string> a, List<string> b)

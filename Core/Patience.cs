@@ -62,6 +62,8 @@ namespace Patience.Core
 
     class Patience
     {
+        private readonly Myers _myers = new Myers();
+
         public List<LineDiff> Diff(string a, string b)
         {
             var a_lines = a.GetLines().ToList();
@@ -74,11 +76,10 @@ namespace Patience.Core
         {
             if (slice.a_high == slice.a_low && slice.b_high == slice.b_low) return new List<LineDiff>(0);
 
-            var myers = new Myers();
             var a_lines = a.GetRange(slice.a_low, slice.a_high - slice.a_low);
             var b_lines = b.GetRange(slice.b_low, slice.b_high - slice.b_low);
-            var linesDiff = myers.LinesDiff(a_lines, b_lines);
-            var linesDiffWithEdits = myers.MergeLineModifications(linesDiff);
+            var linesDiff = _myers.LinesDiff(a_lines, b_lines);
+            var linesDiffWithEdits = _myers.MergeLineModifications(linesDiff);
             return linesDiffWithEdits;
         }
 
@@ -106,8 +107,10 @@ namespace Patience.Core
                     return lines;
                 }
 
-                var change = a[match.a_line];
-                lines.Add(new LineDiff(Operation.Equal, change));
+                var change1 = a[match.a_line];
+                var change2 = b[match.b_line];
+                var diff = _myers.GetLineDiff(change1, change2);
+                lines.Add(diff);
 
                 (a_line, b_line) = (match.a_line + 1, match.b_line + 1);
                 match = match.next;
@@ -119,7 +122,7 @@ namespace Patience.Core
             var counts = new Dictionary<string, LineOccurrence>();
             foreach (var n in slice.a_range)
             {
-                var text = a[n];
+                var text = a[n].Trim();
                 var occurrence = counts.GetOrCreate(text, key => new LineOccurrence());
                 occurrence.a_count++;
                 occurrence.a_first = occurrence.a_first ?? n;
@@ -128,7 +131,7 @@ namespace Patience.Core
 
             foreach (var n in slice.b_range)
             {
-                var text = b[n];
+                var text = b[n].Trim();
                 var occurrence = counts.GetOrCreate(text, key => new LineOccurrence());
                 occurrence.b_count++;
                 occurrence.b_first = occurrence.b_first ?? n;
