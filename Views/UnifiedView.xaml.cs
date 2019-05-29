@@ -15,6 +15,9 @@ namespace Patience.Views
     {
         private readonly UserControlBrushes _brushes;
 
+        private Paragraph _previousSelected;
+        private Brush _previousSelectedBackground;
+
         public event ScrollChangedEventHandler ScrollChanged;
         
         private class UserControlBrushes
@@ -23,6 +26,7 @@ namespace Patience.Views
             public Brush Inserted { get; set; }
             public Brush InlineDeleted { get; set; }
             public Brush InlineInserted { get; set; }
+            public Brush Focus { get; set; }
         }
 
         public UnifiedView()
@@ -34,7 +38,8 @@ namespace Patience.Views
                 Deleted = new SolidColorBrush(Color.FromRgb(255, 204, 204)), 
                 Inserted = new SolidColorBrush(Color.FromRgb(235, 241, 221)), 
                 InlineDeleted = new SolidColorBrush(Color.FromRgb(255, 153, 153)),
-                InlineInserted = new SolidColorBrush(Color.FromRgb(215, 227, 188))
+                InlineInserted = new SolidColorBrush(Color.FromRgb(215, 227, 188)),
+                Focus = new SolidColorBrush(Color.FromRgb(255, 235, 180)),
             };
         }
 
@@ -47,11 +52,19 @@ namespace Patience.Views
                 var rightNumbers = new StringBuilder();
                 var unifiedLeftNumber = 1;
                 var unifiedRightNumber = 1;
+                var first = true;
                 foreach (var line in diffs)
                 {
                     var paragraphs = CreateParagraphs(line);
                     foreach (var paragraph in paragraphs)
                     {
+                        if (first)
+                        {
+                            _previousSelected = paragraph;
+                            _previousSelectedBackground = paragraph.Background;
+                            paragraph.Background = _brushes.Focus;
+                            first = false;
+                        }
                         document.Blocks.Add(paragraph);
                     }
                     if (line.Operation == Operation.Modify)
@@ -152,6 +165,24 @@ namespace Patience.Views
             leftNumbersBox.ScrollToVerticalOffset(e.VerticalOffset);
             rightNumbersBox.ScrollToVerticalOffset(e.VerticalOffset);
             ScrollChanged?.Invoke(this, e);
+        }
+
+        private void OnSelectionChanged(object sender, RoutedEventArgs e)
+        {
+            if (e.Source is RichTextBox rtb)
+            {
+                if (_previousSelected != null)
+                {
+                    _previousSelected.Background = _previousSelectedBackground;
+                    _previousSelected = null;
+                }
+                if (rtb.CaretPosition.Paragraph != null)
+                {
+                    _previousSelectedBackground = rtb.CaretPosition.Paragraph.Background;
+                    _previousSelected = rtb.CaretPosition.Paragraph;
+                    rtb.CaretPosition.Paragraph.Background = _brushes.Focus;
+                }
+            }
         }
     }
 }

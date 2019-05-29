@@ -52,7 +52,9 @@
             Grid.Column="1" 
             Name="textBox" 
             IsReadOnly="True"
+            IsReadOnlyCaretVisible="True"
             VerticalScrollBarVisibility="{Binding ElementName=Root, Path=ScrollBarVisibility}"
-            ScrollViewer.ScrollChanged="OnScrollChanged" />
+            ScrollViewer.ScrollChanged="OnScrollChanged"
+            SelectionChanged="OnSelectionChanged" />
     </Grid>
 </UserControl>

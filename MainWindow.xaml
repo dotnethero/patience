@@ -56,7 +56,9 @@
                 DataContext="{Binding Diff}" 
                 Mode="File1"
                 ScrollBarVisibility="Hidden"
-                ScrollChanged="File1_OnScrollChanged"/>
+                ScrollChanged="File1_OnScrollChanged"
+                SelectedLineChanged="File1_OnSelectedLineChanged"
+                />
             <GridSplitter Grid.Column="1"></GridSplitter>
             <views:DiffView 
                 x:Name="file2" 
@@ -64,7 +66,8 @@
                 DataContext="{Binding Diff}" 
                 Mode="File2"
                 ScrollBarVisibility="Visible"
-                ScrollChanged="File2_OnScrollChanged" />
+                ScrollChanged="File2_OnScrollChanged"
+                SelectedLineChanged="File2_OnSelectedLineChanged" />
             
         </Grid>
         <Grid Visibility="{Binding Path=Mode, Converter={StaticResource ParameterVisibility}, ConverterParameter=Unified, Mode=OneWay}">

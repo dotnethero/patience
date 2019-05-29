@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System.Collections;
+using System.Collections.Generic;
 using System.Text;
 using System.Windows;
 using System.Windows.Controls;
@@ -6,6 +7,7 @@ using System.Windows.Documents;
 using System.Windows.Media;
 using Patience.Core;
 using Patience.Models;
+using Patience.Utils;
 using Patience.ViewModels;
 
 namespace Patience.Views
@@ -16,8 +18,13 @@ namespace Patience.Views
     public partial class DiffView : UserControl
     {
         private readonly UserControlBrushes _brushes;
+        
+        private Paragraph _previousSelected;
+        private Brush _previousSelectedBackground;
+        private int _currentLine;
 
         public event ScrollChangedEventHandler ScrollChanged;
+        public event SelectedLineChangedEventHandler SelectedLineChanged;
 
         #region Dependency properties
 
@@ -49,6 +56,7 @@ namespace Patience.Views
             public Brush InlineInserted { get; set; }
             public Brush AbsentArea { get; set; }
             public Brush AbsentAreaForeground { get; set; }
+            public Brush Focus { get; set; }
         }
 
         public DiffView()
@@ -62,7 +70,8 @@ namespace Patience.Views
                 InlineDeleted = new SolidColorBrush(Color.FromRgb(255, 153, 153)),
                 InlineInserted = new SolidColorBrush(Color.FromRgb(215, 227, 188)),
                 AbsentArea = (Brush) TryFindResource("AbsentArea"),
-                AbsentAreaForeground = Brushes.DarkGray
+                AbsentAreaForeground = Brushes.DarkGray,
+                Focus = new SolidColorBrush(Color.FromRgb(255, 235, 180)),
             };
         }
 
@@ -73,9 +82,18 @@ namespace Patience.Views
                 var document = new FlowDocument { PageWidth = 3000 }; // fast resize tweak
                 var lineNumbers = new StringBuilder();
                 var currentLineNumber = 1;
+                var first = true;
                 foreach (var line in diffs)
                 {
                     var paragraph = CreateParagraph(line);
+                    if (first)
+                    {
+                        _currentLine = 0;
+                        _previousSelected = paragraph;
+                        _previousSelectedBackground = paragraph.Background;
+                        paragraph.Background = _brushes.Focus;
+                        first = false;
+                    }
                     document.Blocks.Add(paragraph);
                     if (line.Operation == Operation.Delete && Mode == DiffViewMode.File2 ||
                         line.Operation == Operation.Insert && Mode == DiffViewMode.File1)
@@ -172,11 +190,47 @@ namespace Patience.Views
         {
             textBox.ScrollToVerticalOffset(offset);
         }
+        
+        public void SelectLineByIndex(int index)
+        {
+            if (index != _currentLine)
+            {
+                var paragraph = ((IList) textBox.Document.Blocks)[index];
+                if (paragraph is Paragraph p)
+                {
+                    textBox.CaretPosition = p.ContentStart;
+                }
+            }
+        }
 
         private void OnScrollChanged(object sender, ScrollChangedEventArgs e)
         {
             lineBox.ScrollToVerticalOffset(e.VerticalOffset);
             ScrollChanged?.Invoke(this, e);
+        }
+
+        private void OnSelectionChanged(object sender, RoutedEventArgs e)
+        {
+            if (e.Source is RichTextBox rtb)
+            {
+                if (_previousSelected != null)
+                {
+                    _previousSelected.Background = _previousSelectedBackground;
+                    _previousSelected = null;
+                }
+                if (rtb.CaretPosition.Paragraph != null)
+                {
+                    _previousSelectedBackground = rtb.CaretPosition.Paragraph.Background;
+                    _previousSelected = rtb.CaretPosition.Paragraph;
+                    rtb.CaretPosition.Paragraph.Background = _brushes.Focus;
+                    var index = ((IList) rtb.Document.Blocks).IndexOf(rtb.CaretPosition.Paragraph);
+                    if (index != _currentLine)
+                    {
+                        _currentLine = index;
+                        SelectedLineChanged?.Invoke(this, new SelectedLineChangedEventArgs { LineIndex = index });
+                    }
+                }
+            }
         }
     }
 }

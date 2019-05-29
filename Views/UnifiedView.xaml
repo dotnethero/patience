@@ -51,6 +51,8 @@
             Grid.Column="2" 
             Name="textBox" 
             IsReadOnly="True"
-            ScrollViewer.ScrollChanged="OnScrollChanged" />
+            IsReadOnlyCaretVisible="True"
+            ScrollViewer.ScrollChanged="OnScrollChanged"
+            SelectionChanged="OnSelectionChanged" />
     </Grid>
 </UserControl>
