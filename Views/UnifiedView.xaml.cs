@@ -4,6 +4,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Documents;
 using System.Windows.Media;
+using Patience.Core;
 using Patience.Models;
 
 namespace Patience.Views
@@ -53,9 +54,10 @@ namespace Patience.Views
                 var unifiedLeftNumber = 1;
                 var unifiedRightNumber = 1;
                 var first = true;
-                foreach (var line in diffs)
+                var packs = PackOperations(diffs);
+                foreach (var pack in packs)
                 {
-                    var paragraphs = CreateParagraphs(line);
+                    var paragraphs = CreateParagraphs(pack);
                     foreach (var paragraph in paragraphs)
                     {
                         if (first)
@@ -67,32 +69,174 @@ namespace Patience.Views
                         }
                         document.Blocks.Add(paragraph);
                     }
-                    if (line.Operation == Operation.Modify)
+
+                    var line1 = pack[0];
+                    if (line1.Operation == Operation.Modify)
                     {
-                        leftNumbers.AppendLine($"{unifiedLeftNumber++}");
-                        leftNumbers.AppendLine("");
-                        rightNumbers.AppendLine();
-                        rightNumbers.AppendLine($"{unifiedRightNumber++}");
+                        for (var i = 0; i < pack.Count; i++)
+                        {
+                            leftNumbers.AppendLine($"{unifiedLeftNumber++}");
+                        }
+                        for (var i = 0; i < pack.Count; i++)
+                        {
+                            leftNumbers.AppendLine("");
+                            rightNumbers.AppendLine();
+                        }
+                        for (var i = 0; i < pack.Count; i++)
+                        {
+                            rightNumbers.AppendLine($"{unifiedRightNumber++}");
+                        }
                     }
-                    if (line.Operation == Operation.Insert)
+                    if (line1.Operation == Operation.Insert)
                     {
-                        leftNumbers.AppendLine();
-                        rightNumbers.AppendLine($"{unifiedRightNumber++}");
+                        for (var i = 0; i < pack.Count; i++)
+                        {
+                            leftNumbers.AppendLine();
+                        }
+                        for (var i = 0; i < pack.Count; i++)
+                        {
+                            rightNumbers.AppendLine($"{unifiedRightNumber++}");
+                        }
                     }
-                    if (line.Operation == Operation.Delete)
+                    if (line1.Operation == Operation.Delete)
                     {
-                        leftNumbers.AppendLine($"{unifiedLeftNumber++}");
-                        rightNumbers.AppendLine();
+                        for (var i = 0; i < pack.Count; i++)
+                        {
+                            leftNumbers.AppendLine($"{unifiedLeftNumber++}");
+                        }
+                        for (var i = 0; i < pack.Count; i++)
+                        {
+                            rightNumbers.AppendLine();
+                        }
                     }
-                    if (line.Operation == Operation.Equal)
+                    if (line1.Operation == Operation.Equal)
                     {
-                        leftNumbers.AppendLine($"{unifiedLeftNumber++}");
-                        rightNumbers.AppendLine($"{unifiedRightNumber++}");
+                        for (var i = 0; i < pack.Count; i++)
+                        {
+                            leftNumbers.AppendLine($"{unifiedLeftNumber++}");
+                            rightNumbers.AppendLine($"{unifiedRightNumber++}");
+                        }
                     }
                 }
                 textBox.Document = document;
                 leftNumbersBox.Text = leftNumbers.ToString();
                 rightNumbersBox.Text = rightNumbers.ToString();
+            }
+        }
+
+        private List<List<LineDiff>> PackOperations(List<LineDiff> lines)
+        {
+            var pack = new List<List<LineDiff>>(lines.Count);
+            var current = new List<LineDiff>();
+            for (var i = 0; i < lines.Count; i++)
+            {
+                if (i > 0 && lines[i].Operation == lines[i - 1].Operation)
+                {
+                    current.Add(lines[i]);
+                }
+                else
+                {
+                    if (current.Count > 0)
+                    {
+                        pack.Add(current);
+                    }
+                    current = new List<LineDiff> { lines[i] };
+                }
+            }
+            if (current.Count > 0)
+            {
+                pack.Add(current);
+            }
+            return pack;
+        }
+
+        private IEnumerable<Paragraph> CreateParagraphs(List<LineDiff> pack)
+        {
+            var line1 = pack[0];
+            if (line1.Operation == Operation.Modify)
+            {
+                foreach (var line in pack)
+                {
+                    var paragraph = new Paragraph { Background = _brushes.Deleted };
+                    foreach (var diff in line.Diffs)
+                    {
+                        var inline1 = new Run();
+                        if (diff.Operation == Operation.Delete)
+                        {
+                            inline1.Text = diff.Text;
+                            inline1.Background = _brushes.InlineDeleted;
+                        }
+                        if (diff.Operation == Operation.Equal)
+                        {
+                            inline1.Text = diff.Text;
+                        }
+                        paragraph.Inlines.Add(inline1);
+                    }
+                    yield return paragraph;
+                }
+                
+                foreach (var line in pack)
+                {
+                    var paragraph = new Paragraph { Background = _brushes.Inserted };
+                    foreach (var diff in line.Diffs)
+                    {
+                        var inline2 = new Run();
+                        if (diff.Operation == Operation.Insert)
+                        {
+                            inline2.Text = diff.Text;
+                            inline2.Background = _brushes.InlineInserted;
+                        }
+                        if (diff.Operation == Operation.Equal)
+                        {
+                            inline2.Text = diff.Text;
+                        }
+                        paragraph.Inlines.Add(inline2);
+                    }
+                    yield return paragraph;
+                }
+            }
+
+            if (line1.Operation == Operation.Insert)
+            {
+                foreach (var line in pack)
+                {
+                    var paragraph = new Paragraph { Background = _brushes.Inserted };
+                    foreach (var diff in line.Diffs)
+                    {
+                        var inline = new Run { Text = diff.Text };
+                        paragraph.Inlines.Add(inline);
+                    }
+                    yield return paragraph;
+                }
+               
+            }
+
+            if (line1.Operation == Operation.Delete)
+            {
+                foreach (var line in pack)
+                {
+                    var paragraph = new Paragraph { Background = _brushes.Deleted };
+                    foreach (var diff in line.Diffs)
+                    {
+                        var inline = new Run { Text = diff.Text };
+                        paragraph.Inlines.Add(inline);
+                    }
+                    yield return paragraph;
+                }
+            }
+
+            if (line1.Operation == Operation.Equal)
+            {
+                foreach (var line in pack)
+                {
+                    var paragraph = new Paragraph();
+                    foreach (var diff in line.Diffs)
+                    {
+                        var inline = new Run { Text = diff.Text };
+                        paragraph.Inlines.Add(inline);
+                    }
+                    yield return paragraph;
+                }
             }
         }
 
@@ -154,7 +298,7 @@ namespace Patience.Views
 
             yield return paragraph;
         }
-
+        
         public void ScrollToVerticalOffset(double offset)
         {
             textBox.ScrollToVerticalOffset(offset);
