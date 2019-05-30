@@ -240,65 +240,6 @@ namespace Patience.Views
             }
         }
 
-        private IEnumerable<Paragraph> CreateParagraphs(LineDiff line)
-        {
-            var paragraph = new Paragraph();
-
-            if (line.Operation == Operation.Modify)
-            {
-                var p1 = new Paragraph();
-                var p2 = new Paragraph();
-
-                p1.Background = _brushes.Deleted;
-                p2.Background = _brushes.Inserted;
-
-                foreach (var diff in line.Diffs)
-                {
-                    var inline1 = new Run();
-                    var inline2 = new Run();
-                    if (diff.Operation == Operation.Insert)
-                    {
-                        inline2.Text = diff.Text;
-                        inline2.Background = _brushes.InlineInserted;
-                    }
-                    if (diff.Operation == Operation.Delete)
-                    {
-                        inline1.Text = diff.Text;
-                        inline1.Background = _brushes.InlineDeleted;
-                    }
-                    if (diff.Operation == Operation.Equal)
-                    {
-                        inline1.Text = diff.Text;
-                        inline2.Text = diff.Text;
-                    }
-                    p1.Inlines.Add(inline1);
-                    p2.Inlines.Add(inline2);
-                }
-
-                yield return p1;
-                yield return p2;
-                yield break;
-            }
-
-            if (line.Operation == Operation.Insert)
-            {
-                paragraph.Background = _brushes.Inserted;
-            }
-            if (line.Operation == Operation.Delete)
-            {
-                paragraph.Background = _brushes.Deleted;
-            }
-            
-            foreach (var diff in line.Diffs)
-            {
-                var inline = new Run();
-                inline.Text = diff.Text;
-                paragraph.Inlines.Add(inline);
-            }
-
-            yield return paragraph;
-        }
-        
         public void ScrollToVerticalOffset(double offset)
         {
             textBox.ScrollToVerticalOffset(offset);
