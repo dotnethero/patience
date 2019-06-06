@@ -18,9 +18,9 @@ namespace Patience.Views
     public partial class DiffView : UserControl
     {
         private readonly UserControlBrushes _brushes;
-        
+        private readonly ParagraphStyles _styles;
+
         private Paragraph _previousSelected;
-        private Brush _previousSelectedBackground;
         private int _currentLine;
 
         public event ScrollChangedEventHandler ScrollChanged;
@@ -48,6 +48,12 @@ namespace Patience.Views
 
         #endregion
         
+        private class ParagraphStyles
+        {
+            public Style Default { get; set; }
+            public Style Focus { get; set; }
+        }
+
         private class UserControlBrushes
         {
             public Brush Deleted { get; set; }
@@ -56,7 +62,6 @@ namespace Patience.Views
             public Brush InlineInserted { get; set; }
             public Brush AbsentArea { get; set; }
             public Brush AbsentAreaForeground { get; set; }
-            public Brush Focus { get; set; }
         }
 
         public DiffView()
@@ -70,8 +75,13 @@ namespace Patience.Views
                 InlineDeleted = new SolidColorBrush(Color.FromRgb(255, 153, 153)),
                 InlineInserted = new SolidColorBrush(Color.FromRgb(215, 227, 188)),
                 AbsentArea = (Brush) TryFindResource("AbsentArea"),
-                AbsentAreaForeground = Brushes.DarkGray,
-                Focus = new SolidColorBrush(Color.FromRgb(255, 235, 180)),
+                AbsentAreaForeground = Brushes.DarkGray
+            };
+
+            _styles = new ParagraphStyles
+            {
+                Default = (Style) TryFindResource("DefaultParagraph"),
+                Focus = (Style) TryFindResource("FocusedParagraph")
             };
         }
 
@@ -90,8 +100,7 @@ namespace Patience.Views
                     {
                         _currentLine = 0;
                         _previousSelected = paragraph;
-                        _previousSelectedBackground = paragraph.Background;
-                        paragraph.Background = _brushes.Focus;
+                        paragraph.Style = _styles.Focus;
                         first = false;
                     }
                     document.Blocks.Add(paragraph);
@@ -215,14 +224,13 @@ namespace Patience.Views
             {
                 if (_previousSelected != null)
                 {
-                    _previousSelected.Background = _previousSelectedBackground;
+                    _previousSelected.Style = _styles.Default;
                     _previousSelected = null;
                 }
                 if (rtb.CaretPosition.Paragraph != null)
                 {
-                    _previousSelectedBackground = rtb.CaretPosition.Paragraph.Background;
                     _previousSelected = rtb.CaretPosition.Paragraph;
-                    rtb.CaretPosition.Paragraph.Background = _brushes.Focus;
+                    rtb.CaretPosition.Paragraph.Style = _styles.Focus;
                     var index = ((IList) rtb.Document.Blocks).IndexOf(rtb.CaretPosition.Paragraph);
                     if (index != _currentLine)
                     {

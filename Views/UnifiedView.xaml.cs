@@ -15,19 +15,24 @@ namespace Patience.Views
     public partial class UnifiedView : UserControl
     {
         private readonly UserControlBrushes _brushes;
+        private readonly ParagraphStyles _styles;
 
         private Paragraph _previousSelected;
-        private Brush _previousSelectedBackground;
 
         public event ScrollChangedEventHandler ScrollChanged;
         
+        private class ParagraphStyles
+        {
+            public Style Default { get; set; }
+            public Style Focus { get; set; }
+        }
+
         private class UserControlBrushes
         {
             public Brush Deleted { get; set; }
             public Brush Inserted { get; set; }
             public Brush InlineDeleted { get; set; }
             public Brush InlineInserted { get; set; }
-            public Brush Focus { get; set; }
         }
 
         public UnifiedView()
@@ -40,7 +45,12 @@ namespace Patience.Views
                 Inserted = new SolidColorBrush(Color.FromRgb(235, 241, 221)), 
                 InlineDeleted = new SolidColorBrush(Color.FromRgb(255, 153, 153)),
                 InlineInserted = new SolidColorBrush(Color.FromRgb(215, 227, 188)),
-                Focus = new SolidColorBrush(Color.FromRgb(255, 235, 180)),
+            };
+
+            _styles = new ParagraphStyles
+            {
+                Default = (Style) TryFindResource("DefaultParagraph"),
+                Focus = (Style) TryFindResource("FocusedParagraph")
             };
         }
 
@@ -63,8 +73,7 @@ namespace Patience.Views
                         if (first)
                         {
                             _previousSelected = paragraph;
-                            _previousSelectedBackground = paragraph.Background;
-                            paragraph.Background = _brushes.Focus;
+                            paragraph.Style = _styles.Focus;
                             first = false;
                         }
                         document.Blocks.Add(paragraph);
@@ -258,14 +267,13 @@ namespace Patience.Views
             {
                 if (_previousSelected != null)
                 {
-                    _previousSelected.Background = _previousSelectedBackground;
+                    _previousSelected.Style = _styles.Default;
                     _previousSelected = null;
                 }
                 if (rtb.CaretPosition.Paragraph != null)
                 {
-                    _previousSelectedBackground = rtb.CaretPosition.Paragraph.Background;
                     _previousSelected = rtb.CaretPosition.Paragraph;
-                    rtb.CaretPosition.Paragraph.Background = _brushes.Focus;
+                    rtb.CaretPosition.Paragraph.Style = _styles.Focus;
                 }
             }
         }

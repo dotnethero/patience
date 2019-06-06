@@ -19,6 +19,17 @@
         </Style>
         <Style TargetType="Paragraph">
             <Setter Property="Margin" Value="0" />
+            <Setter Property="Padding" Value="0,2" />
+        </Style>
+        <Style TargetType="Paragraph" x:Key="DefaultParagraph">
+            <Setter Property="Margin" Value="0" />
+            <Setter Property="Padding" Value="0,2" />
+        </Style>
+        <Style TargetType="Paragraph" x:Key="FocusedParagraph">
+            <Setter Property="Margin" Value="0" />
+            <Setter Property="Padding" Value="0" />
+            <Setter Property="BorderBrush" Value="LightSlateGray" />
+            <Setter Property="BorderThickness" Value="0,2" />
         </Style>
         <Style TargetType="TextBox" x:Key="LineNumbers">
             <Setter Property="VerticalScrollBarVisibility" Value="Hidden" />
